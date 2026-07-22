@@ -4,6 +4,8 @@ A Lua module for **ITGMania** that functions as a client integration for the **A
 It automatically synchronizes song unlocks, sends checks upon song clears/score thresholds, manages progression
 modifiers, and provides interactive UI overlays directly inside the **Simply Love** theme.
 
+For details about the world setup, and how the game plays, see the [Docs on the AP World](https://github.com/bwaggone/Archipelago-Kiseki/tree/itgmania/worlds/itgmania/docs).
+
 ---
 
 ## 🌟 Key Features
