@@ -155,7 +155,6 @@ AP.MakeStatusOverlayActor = function()
 	local scrollOffset = 1
 	local selectedIndex = 1
 	local overlay_visible = false
-	local inputCallback = nil
 	
 	local paneWidth = 720
 	local paneHeight = 440
@@ -326,13 +325,6 @@ AP.MakeStatusOverlayActor = function()
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, false)
 			end
-			if inputCallback then
-				local screen = SCREENMAN:GetTopScreen()
-				if screen then
-					screen:RemoveInputCallback(inputCallback)
-				end
-				inputCallback = nil
-			end
 			MESSAGEMAN:Broadcast("APStatusRefresh")
 			return true
 		end
@@ -387,13 +379,6 @@ AP.MakeStatusOverlayActor = function()
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, false)
 			end
-			if inputCallback then
-				local screen = SCREENMAN:GetTopScreen()
-				if screen then
-					screen:RemoveInputCallback(inputCallback)
-				end
-				inputCallback = nil
-			end
 			MESSAGEMAN:Broadcast("APStatusRefresh")
 		end
 		
@@ -412,17 +397,10 @@ AP.MakeStatusOverlayActor = function()
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, true)
 			end
-			
-			inputCallback = input
-			screen:AddInputCallback(inputCallback)
 		else
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Cancel"))
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, false)
-			end
-			if inputCallback then
-				screen:RemoveInputCallback(inputCallback)
-				inputCallback = nil
 			end
 		end
 		
@@ -488,17 +466,17 @@ AP.MakeStatusOverlayActor = function()
 		ModuleCommand = function(self)
 			local screen = SCREENMAN:GetTopScreen()
 			if screen then
+				screen:RemoveInputCallback(F10_listener)
 				screen:AddInputCallback(F10_listener)
+				screen:RemoveInputCallback(input)
+				screen:AddInputCallback(input)
 			end
 		end,
 		OffCommand = function(self)
 			local screen = SCREENMAN:GetTopScreen()
-			if screen and F10_listener then
+			if screen then
 				screen:RemoveInputCallback(F10_listener)
-			end
-			if inputCallback and screen then
-				screen:RemoveInputCallback(inputCallback)
-				inputCallback = nil
+				screen:RemoveInputCallback(input)
 			end
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, false)
@@ -716,7 +694,6 @@ AP.MakeEvaluationOverlayActor = function()
 	local proposed_items = { money = 0, ex = 0, hex = 0 }
 	local selected_row = 2
 	local overlay_visible = false
-	local inputCallback = nil
 	local toggleOverlay = nil
 	
 	local paneWidth = 560
@@ -1025,19 +1002,11 @@ AP.MakeEvaluationOverlayActor = function()
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, true)
 			end
-			
-			inputCallback = input
-			screen:AddInputCallback(inputCallback)
 		else
 			SOUND:PlayOnce(THEME:GetPathS("Common", "Cancel"))
 			
 			for player in ivalues(PlayerNumber) do
 				SCREENMAN:set_input_redirected(player, false)
-			end
-			
-			if inputCallback then
-				screen:RemoveInputCallback(inputCallback)
-				inputCallback = nil
 			end
 		end
 		
@@ -1052,6 +1021,11 @@ AP.MakeEvaluationOverlayActor = function()
 			proposed_items = 0
 		end,
 		ModuleCommand = function(self)
+			local screen = SCREENMAN:GetTopScreen()
+			if screen then
+				screen:RemoveInputCallback(input)
+				screen:AddInputCallback(input)
+			end
 			MESSAGEMAN:Broadcast("APBonusRefresh")
 			
 			-- Auto-popup if they have available items, otherwise finalize immediately
@@ -1069,11 +1043,8 @@ AP.MakeEvaluationOverlayActor = function()
 		end,
 		OffCommand = function(self)
 			local screen = SCREENMAN:GetTopScreen()
-			if inputCallback and screen then
-				screen:RemoveInputCallback(inputCallback)
-				inputCallback = nil
-			end
 			if screen then
+				screen:RemoveInputCallback(input)
 				for player in ivalues(PlayerNumber) do
 					SCREENMAN:set_input_redirected(player, false)
 				end
