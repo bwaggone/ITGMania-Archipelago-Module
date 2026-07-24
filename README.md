@@ -64,6 +64,7 @@ This is not yet done.
 *Accessible from the Song Selection wheel (`ScreenSelectMusic`).*
 *   **`F10` or `ESC`**: Open/Close the overlay.
 *   **`MenuUp` / `MenuDown`** (or Arrow Up/Down): Scroll through the list of unlocked songs to inspect details.
+*   **`R`**: Regenerate the local playlist and request a sync from the Archipelago server.
 *   **`Start` / `Select`**: Close the overlay.
 
 ### Screen Evaluation Overlay
@@ -86,4 +87,5 @@ This is not yet done.
 * Properly calculate HEX, that's not actually finished yet
 * Decide if items should just be granted to the player as unlockable items, or if it should be shop based
   * e.g. players will send coins, and those coins unlock items or charts SRPG sytle
-* Shortcut to regen the playlist in case of desync issues
+* Make overlays look a little closer to the ones that appear in SRPG / ITL
+* Add graphics for AP

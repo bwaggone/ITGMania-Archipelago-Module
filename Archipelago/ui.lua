@@ -364,6 +364,22 @@ AP.MakeStatusOverlayActor = function()
 				SOUND:PlayOnce(THEME:GetPathS("ScreenSelectMaster", "change"))
 				MESSAGEMAN:Broadcast("APStatusRefresh")
 			end
+		elseif key == "DeviceButton_r" or key == "DeviceButton_R" then
+			-- Sync and regenerate playlist
+			AP.UpdatePlaylist()
+			
+			local apHandler = GetAPHandlerInstance()
+			if apHandler and apHandler.connected and apHandler.socket then
+				local sync_packet = { ["cmd"] = "Sync" }
+				local payload = JsonEncode({ sync_packet })
+				apHandler.socket:Send(payload, false)
+				AP.AP_SM("Requested Archipelago sync...")
+			else
+				AP.AP_SM("Regenerated Archipelago playlist locally.")
+			end
+			
+			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
+			MESSAGEMAN:Broadcast("APStatusRefresh")
 		elseif game_btn == "Start" or game_btn == "Select" then
 			-- Toggle overlay off
 			overlay_visible = false
@@ -547,7 +563,7 @@ AP.MakeStatusOverlayActor = function()
 			
 			-- Bottom footer instructional text
 			LoadFont("Common Normal") .. {
-				Text = "Use MENUUP/MENUDOWN or arrow keys to scroll. Press F10 or ESC to exit.",
+				Text = "Use &MENUUP;/&MENUDOWN; to scroll. Press R to sync & regenerate. Press &SELECT;, &BACK;, or ESC to exit.",
 				InitCommand = function(self)
 					self:y(paneHeight/2 - 18):zoom(0.55):diffuse(0.7, 0.7, 0.7, 1)
 				end
@@ -1231,7 +1247,7 @@ AP.MakeEvaluationOverlayActor = function()
 			
 			-- Footer / Help instructions
 			LoadFont("Common Normal") .. {
-				Text = "UP/DOWN to select score. LEFT/RIGHT to adjust. START to apply. ESC to cancel.",
+				Text = "Use &MENUUP;/&MENUDOWN; to select score, &MENULEFT;/&MENURIGHT; to adjust. Press &START; to apply, &SELECT;/&BACK; to cancel.",
 				InitCommand = function(self)
 					self:y(paneHeight/2 - 18):zoom(0.52):diffuse(0.7, 0.7, 0.7, 1)
 				end
