@@ -236,6 +236,7 @@ end
 AP.GetModifierStats = function()
 	local max_bpm = "Default (300)"
 	local max_filter = "None"
+	local mini = "Default (100%)"
 	local bonus_count = 0
 
 	local speed_items = {
@@ -247,6 +248,13 @@ AP.GetModifierStats = function()
 		["Speed Any BPM"] = 9999,
 	}
 
+	local mini_items = {
+		["Mini 90%"] = 90,
+		["Mini 70%"] = 80,
+		["Mini 50%"] = 70,
+		["Any Mini"] = 0,
+	}
+
 	local filter_items = {
 		["Dark Filter"] = 1,
 		["Darker Filter"] = 2,
@@ -255,6 +263,7 @@ AP.GetModifierStats = function()
 
 	local highest_speed_val = 0
 	local highest_filter_val = 0
+	local lowest_mini_val = 100
 
 	if AP.AP_AllReceivedItems then
 		for _, item in ipairs(AP.AP_AllReceivedItems) do
@@ -276,10 +285,15 @@ AP.GetModifierStats = function()
 						highest_filter_val = filter_items[name]
 						max_filter = name:gsub(" Filter", "")
 					end
+				elseif mini_items[name] then
+					if mini_items[name] < lowest_mini_val then
+						lowest_mini_val = mini_items[name]
+						mini = name:gsub("Mini ", "")
+					end
 				end
 			end
 		end
 	end
 
-	return max_bpm, max_filter, bonus_count
+	return max_bpm, max_filter, mini, bonus_count
 end

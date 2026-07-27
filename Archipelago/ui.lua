@@ -143,7 +143,6 @@ AP.MakePopupActor = function(screenName)
 				self:xy(12, 32)
 				self:halign(0):valign(0)
 				self:zoom(0.5)
-				self:maxwidth(240)
 			end
 		}
 	}
@@ -207,8 +206,8 @@ AP.MakeStatusOverlayActor = function()
 		bar_fg:zoomto(500 * progress_pct, 12)
 		
 		-- Update modifier stats line
-		local max_bpm, max_filter, bonus_count = AP.GetModifierStats()
-		local mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Score Boosters: %d", max_bpm, max_filter, bonus_count)
+		local max_bpm, max_filter, mini, bonus_count = AP.GetModifierStats()
+		local mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Mini: %s    |    Score Boosters: %d", max_bpm, max_filter, mini, bonus_count)
 		container:GetChild("ConnectedGroup"):GetChild("ModifierText"):settext(mod_text)
 		
 		-- Update scrollable songs list rows
@@ -329,6 +328,25 @@ AP.MakeStatusOverlayActor = function()
 			return true
 		end
 		
+		if key == "DeviceButton_r" or key == "DeviceButton_R" then
+			-- Sync and regenerate playlist
+			AP.UpdatePlaylist()
+			
+			local apHandler = GetAPHandlerInstance()
+			if apHandler and apHandler.connected and apHandler.socket then
+				local sync_packet = { ["cmd"] = "Sync" }
+				local payload = JsonEncode({ sync_packet })
+				apHandler.socket:Send(payload, false)
+				AP.AP_SM("Requested Archipelago sync...")
+			else
+				AP.AP_SM("Regenerated Archipelago playlist locally.")
+			end
+			
+			SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))
+			MESSAGEMAN:Broadcast("APStatusRefresh")
+			return true
+		end
+		
 		if not (event.PlayerNumber and event.button) then
 			return false
 		end
@@ -356,22 +374,6 @@ AP.MakeStatusOverlayActor = function()
 				SOUND:PlayOnce(THEME:GetPathS("ScreenSelectMaster", "change"))
 				MESSAGEMAN:Broadcast("APStatusRefresh")
 			end
-		elseif key == "DeviceButton_r" or key == "DeviceButton_R" then
-			-- Sync and regenerate playlist
-			AP.UpdatePlaylist()
-			
-			local apHandler = GetAPHandlerInstance()
-			if apHandler and apHandler.connected and apHandler.socket then
-				local sync_packet = { ["cmd"] = "Sync" }
-				local payload = JsonEncode({ sync_packet })
-				apHandler.socket:Send(payload, false)
-				AP.AP_SM("Requested Archipelago sync...")
-			else
-				AP.AP_SM("Regenerated Archipelago playlist locally.")
-			end
-			
-			SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
-			MESSAGEMAN:Broadcast("APStatusRefresh")
 		elseif game_btn == "Start" or game_btn == "Select" then
 			-- Toggle overlay off
 			overlay_visible = false
