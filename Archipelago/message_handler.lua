@@ -173,10 +173,12 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.passing_score = packet["slot_data"]["passing_score"] or 0
 					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"]
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or 15
+					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or false
 					AP.AP_SM("Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
-					   ", Win Count: " .. tostring(AP.slotOptions.win_count))
+					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
+					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items))
 				end
 			elseif packet_cmd == "RoomUpdate" then
 				AP.AP_SM("Received RoomUpdate from server.")
@@ -195,10 +197,12 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.passing_score = packet["slot_data"]["passing_score"] or AP.slotOptions.passing_score
 					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"] or AP.slotOptions.fail_allowed
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or AP.slotOptions.win_count
+					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or AP.slotOptions.enable_mod_items
 					AP.AP_SM("Updated Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
-					   ", Win Count: " .. tostring(AP.slotOptions.win_count))
+					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
+					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items))
 				end
 			elseif packet_cmd == "ConnectionRefused" then
 				self.connected = false

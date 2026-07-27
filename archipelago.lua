@@ -1,5 +1,6 @@
 -- Module configuration / shared state
 local AP = {}
+_G.AP = AP
 
 -- Constants
 AP.HOST = "ws://localhost:38281"
@@ -93,19 +94,43 @@ loadSubFile("ui.lua")
 -- Start the connection handler
 AP.CreateAPHandler()
 AP.apHandler:InitCommand()
-
 -- Build modules table for Simply Love screen registration
 local screens = {
 	"ScreenTitleMenu",
 	"ScreenSelectMusic",
 	"ScreenEvaluationNormal",
 	"ScreenEvaluationStage",
-	"ScreenEvaluationNonstop"
+	"ScreenEvaluationNonstop",
+	"ScreenGameplay",
+	"ScreenPlayerOptions",
+	"ScreenPlayerOptions2",
+	"ScreenPlayerOptions3"
 }
-
 local modules = {}
 for _, screen in ipairs(screens) do
 	modules[screen] = AP.MakeScreenActor(screen)
+end
+
+-- Hook CustomOptionRow globally to clamp modifiers immediately when they are saved or loaded
+if _G.CustomOptionRow then
+	local original_CustomOptionRow = _G.CustomOptionRow
+	_G.CustomOptionRow = function(name)
+		local row = original_CustomOptionRow(name)
+		if row and (name == "BackgroundFilter" or name == "Mini" or name == "SpeedMod") then
+			local original_SaveSelections = row.SaveSelections
+			row.SaveSelections = function(subself, list, pn)
+				original_SaveSelections(subself, list, pn)
+				if name == "BackgroundFilter" then
+					AP.ClampBackgroundFilter(pn)
+				elseif name == "Mini" then
+					AP.ClampMini(pn)
+				elseif name == "SpeedMod" then
+					AP.ClampSpeedMod(pn)
+				end
+			end
+		end
+		return row
+	end
 end
 
 return modules

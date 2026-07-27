@@ -1,5 +1,12 @@
 local AP = ...
-
+AP.bonusUsage = AP.bonusUsage or {}
+AP.checkedLocations = AP.checkedLocations or {}
+AP.locationIds = AP.locationIds or {}
+AP.slotOptions = AP.slotOptions or {
+	score_type = 1,
+	passing_score = 0,
+	fail_allowed = false,
+}
 AP.LoadBonusUsage = function()
 	AP.bonusUsage = {}
 	if AP.seedName == "Unknown" or not AP.SLOT then return end
@@ -81,7 +88,7 @@ AP.GetTotalUsedBonusItems = function()
 end
 
 AP.GetAvailableBonusItems = function()
-	local _, _, total_received = AP.GetModifierStats()
+	local _, _, _, total_received = AP.GetModifierStats()
 	local total_used = AP.GetTotalUsedBonusItems()
 	return math.max(0, total_received - total_used)
 end
