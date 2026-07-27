@@ -3,7 +3,10 @@ local AP = ...
 AP.LoadBonusUsage = function()
 	AP.bonusUsage = {}
 	if AP.seedName == "Unknown" or not AP.SLOT then return end
-	local path = "Save/Archipelago_Bonus_" .. AP.seedName .. "_" .. AP.SLOT .. ".txt"
+	
+	local dir = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/SAVE_AP_" .. AP.seedName .. "/"
+	local path = dir .. "Archipelago_Bonus_" .. AP.seedName .. "_" .. AP.SLOT .. ".txt"
+	
 	local file = RageFileUtil.CreateRageFile()
 	if file:Open(path, 1) then -- Mode 1 = Read
 		local content = file:Read()
@@ -34,7 +37,8 @@ end
 
 AP.SaveBonusUsage = function()
 	if AP.seedName == "Unknown" or not AP.SLOT then return end
-	local path = "Save/Archipelago_Bonus_" .. AP.seedName .. "_" .. AP.SLOT .. ".txt"
+	local dir = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/SAVE_AP_" .. AP.seedName .. "/"
+	local path = dir .. "Archipelago_Bonus_" .. AP.seedName .. "_" .. AP.SLOT .. ".txt"
 	local file = RageFileUtil.CreateRageFile()
 	if file:Open(path, 2) then -- Mode 2 = Write
 		local lines = {}
