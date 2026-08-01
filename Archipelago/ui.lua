@@ -490,6 +490,10 @@ AP.MakeStatusOverlayActor = function()
 			toggleOverlay(self)
 		end,
 		
+		APToggleStatusOverlayMessageCommand = function(self)
+			self:playcommand("ToggleOverlay")
+		end,
+		
 		APStatusRefreshMessageCommand = function(self)
 			self:playcommand("Refresh")
 		end,

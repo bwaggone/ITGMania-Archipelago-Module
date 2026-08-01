@@ -24,6 +24,66 @@ AP.MakeScreenActor = function(screenName)
 						end
 					end
 				end
+				self:playcommand("InstallSortMenuHook")
+			end,
+			InstallSortMenuHookCommand = function(self)
+				local top = SCREENMAN:GetTopScreen()
+				if not top or top:GetName() ~= "ScreenSelectMusic" then return end
+
+				local overlay = top:GetChild("Overlay")
+				local sortmenu = overlay and overlay:GetChild("SortMenu") or nil
+				if not sortmenu then
+					self:sleep(0.15):queuecommand("InstallSortMenuHook")
+					return
+				end
+
+				if sortmenu.custom_functions == nil then
+					sortmenu.custom_functions = {}
+				end
+
+				if not sortmenu.custom_functions["AP Status"] then
+					sortmenu.custom_functions["AP Status"] = function(event)
+						local screen = SCREENMAN:GetTopScreen()
+						if not screen or screen:GetName() ~= "ScreenSelectMusic" then return end
+						local ov = screen:GetChild("Overlay")
+						if ov then
+							ov:queuecommand("DirectInputToEngine")
+						end
+						MESSAGEMAN:Broadcast("APToggleStatusOverlay")
+					end
+				end
+
+				if sortmenu.wheel_options then
+					local existingIndex = nil
+					local insertAfterIndex = nil
+
+					for i = 1, #sortmenu.wheel_options do
+						local option = sortmenu.wheel_options[i]
+						if option and option[1] and option[1][1] == "Archipelago" and option[1][2] == "AP Status" then
+							existingIndex = i
+						elseif option and option[1] and option[1][1] == "ArrowCloud" and option[1][2] == "ACLeaderboard" then
+							insertAfterIndex = i
+						elseif insertAfterIndex == nil and option and option[1] and option[1][1] == "NextPlease" and option[1][2] == "SwitchProfile" then
+							insertAfterIndex = i
+						end
+					end
+
+					local apOption = existingIndex and sortmenu.wheel_options[existingIndex]
+						or { { "Archipelago", "AP Status" }, function() return true end }
+
+					if existingIndex ~= nil then
+						table.remove(sortmenu.wheel_options, existingIndex)
+						if insertAfterIndex ~= nil and existingIndex < insertAfterIndex then
+							insertAfterIndex = insertAfterIndex - 1
+						end
+					end
+
+					if insertAfterIndex ~= nil then
+						table.insert(sortmenu.wheel_options, insertAfterIndex + 1, apOption)
+					else
+						table.insert(sortmenu.wheel_options, apOption)
+					end
+				end
 			end
 		}
 		
