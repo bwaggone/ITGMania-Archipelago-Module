@@ -1,7 +1,54 @@
--- This file hanldes AP communication with the server, which includes
--- populating the local map of items to human readable names.
+-- network.lua manages the WebSocket client connection to the Archipelago server,
+-- handles connection events (open, close, error), and parses and dispatches 
+-- incoming JSON packet payloads.
 
 local AP = ...
+
+AP.CreateAPHandler = function() 
+  if AP.apHandler == nil then
+    AP.apHandler = Def.ActorFrame{
+      Name="ArchipelagoHandler",
+		InitCommand=function(self)
+			AP.apHandlerInstance = self
+			AP.apHandlerShuttingDown = false
+			self.socket = nil
+			self.connected = false
+			self.errorMsg = nil
+
+			AP.AP_SM("Connecting to Archipelago server at: " .. AP.HOST)
+
+			-- Connection time.
+			self.socket = NETWORK:WebSocket{
+				url=AP.HOST,
+				pingInterval=15,
+				automaticReconnect=true,
+				enableDeflate=true,
+				onMessage=function(msg)
+					AP.HandleMessage(self, msg)
+				end
+			}
+        end,
+		ScreenChangedMessageCommand = function(self)
+			local screen = SCREENMAN:GetTopScreen()
+			if screen then
+				local name = screen:GetName()
+				if name == "ScreenStageInformation" or name == "ScreenGameplay" then
+					-- Run the clamps before gameplay starts drawing
+					for _, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
+						AP.ClampSpeedMod(pn)
+						AP.ClampBackgroundFilter(pn)
+						AP.ClampMini(pn)
+					end
+				elseif name == "ScreenSelectMusic" then
+					AP.ClampedWarnings = {} -- Reset warnings on returning to music wheel
+				end
+			end
+		end
+      }
+  end
+
+  return AP.apHandler
+end
 
 AP.HandleMessage = function(self, msg)
 	if msg.type == "WebSocketMessageType_Open" then

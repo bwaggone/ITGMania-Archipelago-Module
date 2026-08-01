@@ -82,14 +82,16 @@ local function loadSubFile(filename)
 	return result
 end
 
--- Load Archipelago components
+-- Load Archipelago components in dependency order
 loadSubFile("helpers.lua")
+loadSubFile("cache.lua")
+loadSubFile("modifiers.lua")
+loadSubFile("boosters.lua")
 loadSubFile("playlist.lua")
-loadSubFile("item_handler.lua")
 loadSubFile("evaluator.lua")
-loadSubFile("message_handler.lua")
-loadSubFile("actor_handler.lua")
+loadSubFile("network.lua")
 loadSubFile("ui.lua")
+loadSubFile("actor_handler.lua")
 
 -- Start the connection handler
 AP.CreateAPHandler()

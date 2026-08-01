@@ -1,53 +1,8 @@
--- actor_handler.lua is our main init of the apHandler. It handles the initial
--- websocket startup as well.
+-- actor_handler.lua defines theme actors and screen hooks,
+-- delegating connection logic to network.lua.
 
 local AP = ...
 
-AP.CreateAPHandler = function() 
-  if AP.apHandler == nil then
-    AP.apHandler = Def.ActorFrame{
-      Name="ArchipelagoHandler",
-		InitCommand=function(self)
-			AP.apHandlerInstance = self
-			AP.apHandlerShuttingDown = false
-			self.socket = nil
-			self.connected = false
-			self.errorMsg = nil
-
-			AP.AP_SM("Connecting to Archipelago server at: " .. AP.HOST)
-
-			-- Connection time.
-			self.socket = NETWORK:WebSocket{
-				url=AP.HOST,
-				pingInterval=15,
-				automaticReconnect=true,
-				enableDeflate=true,
-				onMessage=function(msg)
-					AP.HandleMessage(self, msg)
-				end
-			}
-        end,
-		ScreenChangedMessageCommand = function(self)
-			local screen = SCREENMAN:GetTopScreen()
-			if screen then
-				local name = screen:GetName()
-				if name == "ScreenStageInformation" or name == "ScreenGameplay" then
-					-- Run the clamps before gameplay starts drawing
-					for _, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
-						AP.ClampSpeedMod(pn)
-						AP.ClampBackgroundFilter(pn)
-						AP.ClampMini(pn)
-					end
-				elseif name == "ScreenSelectMusic" then
-					AP.ClampedWarnings = {} -- Reset warnings on returning to music wheel
-				end
-			end
-		end
-      }
-  end
-
-  return AP.apHandler
-end
 AP.MakeScreenActor = function(screenName)
 	local af = Def.ActorFrame {}
 	
