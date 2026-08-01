@@ -120,25 +120,14 @@ AP.FinalizeEvaluationAndSendChecks = function()
 		end
 	end
 	
-	local usage = AP.bonusUsage[chart_name]
 	local money_applied = 0
 	local ex_applied = 0
 	local hex_applied = 0
 	
-	if usage then
-		if type(usage) == "table" then
-			money_applied = usage.money or 0
-			ex_applied = usage.ex or 0
-			hex_applied = usage.hex or 0
-		else
-			if AP.slotOptions.score_type == 0 then
-				money_applied = usage
-			elseif AP.slotOptions.score_type == 2 then
-				hex_applied = usage
-			else
-				ex_applied = usage
-			end
-		end
+	if AP.LastEvaluation and AP.LastEvaluation.proposed_items then
+		money_applied = AP.LastEvaluation.proposed_items.money or 0
+		ex_applied = AP.LastEvaluation.proposed_items.ex or 0
+		hex_applied = AP.LastEvaluation.proposed_items.hex or 0
 	end
 	
 	for pn, pdata in pairs(AP.LastEvaluation.players) do

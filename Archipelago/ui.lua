@@ -207,7 +207,7 @@ AP.MakeStatusOverlayActor = function()
 		
 		-- Update modifier stats line
 		local max_bpm, max_filter, mini, bonus_count = AP.GetModifierStats()
-		local mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Mini: %s    |    Score Boosters: %d", max_bpm, max_filter, mini, bonus_count)
+		local mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Mini: %s    |    Score Boosters: %d", max_bpm, max_filter, mini, AP.GetAvailableBonusItems())
 		container:GetChild("ConnectedGroup"):GetChild("ModifierText"):settext(mod_text)
 		
 		-- Update scrollable songs list rows
@@ -780,51 +780,34 @@ AP.MakeEvaluationOverlayActor = function()
 		local pdata = AP.LastEvaluation.players[pn]
 		if not pdata then return end
 		
-		local applied_usage = AP.bonusUsage[chart_name]
-		local applied_money = 0
-		local applied_ex = 0
-		local applied_hex = 0
-		
-		if applied_usage then
-			if type(applied_usage) == "table" then
-				applied_money = applied_usage.money or 0
-				applied_ex = applied_usage.ex or 0
-				applied_hex = applied_usage.hex or 0
-			else
-				if AP.slotOptions.score_type == 0 then applied_money = applied_usage
-				elseif AP.slotOptions.score_type == 2 then applied_hex = applied_usage
-				else applied_ex = applied_usage
-				end
-			end
-		end
-		
+		local total_spent = AP.GetTotalUsedBonusItems()
 		local available = AP.GetAvailableBonusItems()
 		
 		container:GetChild("StatsText"):settext(string.format(
-			"Available: %d (Total Received: %d)   |   Already Applied here: %d",
-			available, available + AP.GetTotalUsedBonusItems(), applied_money + applied_ex + applied_hex
+			"Available: %d (Total Received: %d)   |   Total Spent Globally: %d",
+			available, available + total_spent, total_spent
 		))
 		
-		-- Row score values
+		-- Row score values (applied start at 0 since each play is a fresh start for consumable boosters)
 		local scores = {
 			{
 				name = "Money Score",
 				original = pdata.moneyPercent,
-				applied = applied_money,
+				applied = 0,
 				proposed = proposed_items.money,
 				is_active = (AP.slotOptions.score_type == 0)
 			},
 			{
 				name = "EX Score",
 				original = pdata.exPercent,
-				applied = applied_ex,
+				applied = 0,
 				proposed = proposed_items.ex,
 				is_active = (AP.slotOptions.score_type == 1)
 			},
 			{
 				name = "High EX (HEX)",
 				original = pdata.highExPercent,
-				applied = applied_hex,
+				applied = 0,
 				proposed = proposed_items.hex,
 				is_active = (AP.slotOptions.score_type == 2)
 			}
@@ -873,9 +856,9 @@ AP.MakeEvaluationOverlayActor = function()
 		end
 		
 		-- Calculate pending unlocks for logic
-		local proposed_money_total = applied_money + proposed_items.money
-		local proposed_ex_total = applied_ex + proposed_items.ex
-		local proposed_hex_total = applied_hex + proposed_items.hex
+		local proposed_money_total = proposed_items.money
+		local proposed_ex_total = proposed_items.ex
+		local proposed_hex_total = proposed_items.hex
 		
 		local adjMoneyScore = pdata.moneyPercent + (proposed_money_total * 0.25)
 		local adjExScore = pdata.exPercent + (proposed_ex_total * 0.25)
@@ -975,6 +958,7 @@ AP.MakeEvaluationOverlayActor = function()
 			end
 		elseif game_btn == "Start" then
 			if proposed_sum > 0 then
+				AP.LastEvaluation.proposed_items = proposed_items
 				AP.ApplyBonusPercentage(AP.LastEvaluation.chart_name, proposed_items)
 				SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 			else
@@ -1087,15 +1071,11 @@ AP.MakeEvaluationOverlayActor = function()
 					local available = AP.GetAvailableBonusItems()
 					local chart_name = AP.LastEvaluation.chart_name
 					
-					-- Sum up total applied on this song
+					-- Sum up total applied on this song play
 					local applied = 0
-					local usage = AP.bonusUsage[chart_name]
-					if usage then
-						if type(usage) == "table" then
-							applied = (usage.money or 0) + (usage.ex or 0) + (usage.hex or 0)
-						else
-							applied = usage
-						end
+					local prop = AP.LastEvaluation.proposed_items
+					if prop then
+						applied = (prop.money or 0) + (prop.ex or 0) + (prop.hex or 0)
 					end
 					
 					self:settext(string.format("AP Boosters: %d available (%d applied)", available, applied))

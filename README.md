@@ -80,10 +80,8 @@ This is not yet done.
 
 * Support more complex items besides a score booster (combo shield? worst judgement upgrader?)
 * Support traps sent from the server
-* Enforce modifier restrictions (if enabled), meaning that until you unlock BPMs, Mini, or BG settings, they will be unchangeable
 * Separate leg of the module for generating a song pool to pass to the server for world generation
 * Allow the user to specify their AP credentials in game
-* Fix the item application, as it's a little buggy with repeated charts
 * Properly calculate HEX, that's not actually finished yet
 * Decide if items should just be granted to the player as unlockable items, or if it should be shop based
   * e.g. players will send coins, and those coins unlock items or charts SRPG sytle

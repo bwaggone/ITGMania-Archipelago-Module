@@ -26,15 +26,10 @@ AP.EvaluateCompletedSong = function()
 	
 	AP.AP_SM("Evaluating completed AP song: " .. chart_name)
 	
-	-- Reset bonus usage for this song on a new completion/replay (fresh slate)
-	if AP.bonusUsage then
-		AP.bonusUsage[chart_name] = nil
-		AP.SaveBonusUsage()
-	end
-	
 	AP.LastEvaluation = {
 		chart_name = chart_name,
-		players = {}
+		players = {},
+		proposed_items = { money = 0, ex = 0, hex = 0 }
 	}
 	
 	for _, pn in ipairs(GAMESTATE:GetEnabledPlayers()) do
@@ -67,22 +62,7 @@ AP.EvaluateCompletedSong = function()
 				score_system_name = "High EX (FA+)"
 			end
 			
-			local usage = AP.bonusUsage and AP.bonusUsage[chart_name]
-			local bonus_applied = 0
-			if usage then
-				if type(usage) == "table" then
-					if AP.slotOptions.score_type == 0 then
-						bonus_applied = usage.money or 0
-					elseif AP.slotOptions.score_type == 2 then
-						bonus_applied = usage.hex or 0
-					else
-						bonus_applied = usage.ex or 0
-					end
-				else
-					bonus_applied = usage
-				end
-			end
-			local adjustedPercent = activePercent + (bonus_applied * 0.25)
+			local adjustedPercent = activePercent
 			
 			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " Performance - " .. score_system_name .. " Score: " .. string.format("%.2f", activePercent) .. "% (Money: " .. string.format("%.2f", moneyPercent) .. "%" .. (CalculateExScore and (", EX: " .. string.format("%.2f", exPercent) .. "%") or "") .. "), Failed: " .. tostring(is_failed))
 			
