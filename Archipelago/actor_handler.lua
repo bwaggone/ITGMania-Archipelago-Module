@@ -60,6 +60,15 @@ AP.MakeScreenActor = function(screenName)
 		af[#af+1] = Def.Actor {
 			ModuleCommand = function(self)
 				AP.ClampedWarnings = {} -- Reset warnings on music wheel
+				if AP.seedName and AP.seedName ~= "Unknown" and SONGMAN:GetPreferredSortSongs() then
+					local top = SCREENMAN:GetTopScreen()
+					if top and top:GetName() == "ScreenSelectMusic" then
+						local wheel = top:GetMusicWheel()
+						if wheel then
+							wheel:ChangeSort("SortOrder_Preferred")
+						end
+					end
+				end
 			end
 		}
 		
@@ -122,20 +131,20 @@ AP.MakeScreenActor = function(screenName)
 			-- Background box
 			Def.Quad {
 				InitCommand = function(self)
-					self:zoomto(420, 80)
+					self:zoomto(500, 80)
 					self:diffuse(0.05, 0.05, 0.05, 0.85)
 				end
 			},
 			-- Accent outline / border with a yellow color
 			Def.Quad {
 				InitCommand = function(self)
-					self:zoomto(4, 80):x(-210)
+					self:zoomto(4, 80):x(-250)
 					self:diffuse(0.9, 0.8, 0.1, 1) -- yellow warning accent
 				end
 			},
-			-- Warning Icon / Title
+			-- Warning Title
 			LoadFont("Common Bold") .. {
-				Text = "⚠️ ARCHIPELAGO MODIFIERS CLAMPED",
+				Text = "ARCHIPELAGO MODIFIERS CLAMPED",
 				InitCommand = function(self)
 					self:y(-22):zoom(0.65)
 					self:diffuse(0.9, 0.8, 0.1, 1) -- yellow warning title
@@ -146,7 +155,7 @@ AP.MakeScreenActor = function(screenName)
 				Name = "Subtext",
 				Text = "",
 				InitCommand = function(self)
-					self:y(12):zoom(0.55)
+					self:y(12):zoom(0.65)
 					self:diffuse(0.9, 0.9, 0.9, 1)
 				end
 			}
