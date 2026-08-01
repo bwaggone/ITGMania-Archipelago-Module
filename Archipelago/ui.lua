@@ -491,7 +491,7 @@ AP.MakeStatusOverlayActor = function()
 		end,
 		
 		APToggleStatusOverlayMessageCommand = function(self)
-			self:playcommand("ToggleOverlay")
+			self:sleep(0.05):queuecommand("ToggleOverlay")
 		end,
 		
 		APStatusRefreshMessageCommand = function(self)
