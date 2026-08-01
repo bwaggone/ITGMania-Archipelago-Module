@@ -82,8 +82,8 @@ This is not yet done.
 * Support traps sent from the server
 * Separate leg of the module for generating a song pool to pass to the server for world generation
 * Allow the user to specify their AP credentials in game
-* Properly calculate HEX, that's not actually finished yet
 * Decide if items should just be granted to the player as unlockable items, or if it should be shop based
   * e.g. players will send coins, and those coins unlock items or charts SRPG sytle
 * Make overlays look a little closer to the ones that appear in SRPG / ITL
 * Add graphics for AP
+* Improve item balance, so that we can drop speed + mini + bg modifiers sooner than songs

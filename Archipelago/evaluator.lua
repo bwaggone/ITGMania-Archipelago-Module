@@ -1,11 +1,118 @@
 local AP = ...
 
+if not SL then SL = {} end
+
+SL.HardExWeights = {
+	W010=3.5,
+	W110=3,
+	W2=1,
+	W3=0,
+	W4=0,
+	W5=0,
+	Miss=0,
+	LetGo=0,
+	Held=1,
+	HitMine=-1
+}
+
+CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
+	-- No EX scores in Casual mode, just return some dummy number early.
+	if SL.Global.GameMode == "Casual" then return 0 end
+	local StepsOrTrail = (GAMESTATE:IsCourseMode() and GAMESTATE:GetCurrentTrail(player)) or GAMESTATE:GetCurrentSteps(player)
+
+	local totalSteps = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_TapsAndHolds" )
+	local totalHolds = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Holds" )
+	local totalRolls = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Rolls" )
+
+	local W0Weight = use_actual_w0_weight and 3.5 or SL.HardExWeights["W010"]
+	local total_possible = totalSteps * W0Weight + (totalHolds + totalRolls) * SL.HardExWeights["Held"]
+
+	-- If we can't calculate HardEx score (ex_counts is passed, or sequential_offsets is missing), return 0%.
+	local stageStats = SL[ToEnumShortString(player)].Stages.Stats[SL.Global.Stages.PlayedThisGame + 1]
+	local sequential_offsets = (not ex_counts) and stageStats and stageStats.sequential_offsets
+	if not sequential_offsets then
+		return 0, 0, total_possible
+	end
+
+	local total_points = 0
+
+	local po = GAMESTATE:GetPlayerState(player):GetPlayerOptions("ModsLevel_Preferred")
+
+	-- If mines are disabled, they should still be accounted for in EX Scoring based on the weight assigned to it.
+	-- Stamina community does often play with no-mines on, but because EX scoring is more timing centric where mines
+	-- generally have a negative weight, it's a better experience to make sure the EX score reflects that.
+	if po:NoMines() then
+		local totalMines = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Mines" )
+		total_points = total_points + totalMines * SL.HardExWeights["HitMine"]
+	end
+
+	-- Calculate timing window limits dynamically for parity with theme preferences
+	local scale = PREFSMAN:GetPreference("TimingWindowScale")
+	local prefs = SL.Preferences["FA+"]
+	local timingWindowAdd = prefs and prefs.TimingWindowAdd or 0.0015
+	local itgPrefs = SL.Preferences[SL.Global.GameMode] or SL.Preferences["ITG"]
+
+	local W010_limit = 0.0085 * scale + timingWindowAdd
+	local W1_limit = (itgPrefs and itgPrefs.TimingWindowSecondsW1 or 0.0215) * scale + timingWindowAdd
+	local W2_limit = (itgPrefs and itgPrefs.TimingWindowSecondsW2 or 0.0430) * scale + timingWindowAdd
+	local W3_limit = (itgPrefs and itgPrefs.TimingWindowSecondsW3 or 0.1020) * scale + timingWindowAdd
+	local W4_limit = (itgPrefs and itgPrefs.TimingWindowSecondsW4 or 0.1350) * scale + timingWindowAdd
+	local W5_limit = (itgPrefs and itgPrefs.TimingWindowSecondsW5 or 0.1800) * scale + timingWindowAdd
+
+	local counts = {
+		W010 = 0,
+		W110 = 0,
+		W2 = 0,
+		W3 = 0,
+		W4 = 0,
+		W5 = 0,
+		Miss = 0
+	}
+
+	for _, entry in ipairs(sequential_offsets) do
+		local offset = entry[2]
+		if offset == "Miss" then
+			counts["Miss"] = counts["Miss"] + 1
+		elseif type(offset) == "number" then
+			local abs_offset = math.abs(offset)
+			if abs_offset <= W010_limit then
+				counts["W010"] = counts["W010"] + 1
+			elseif abs_offset <= W1_limit then
+				counts["W110"] = counts["W110"] + 1
+			elseif abs_offset <= W2_limit then
+				counts["W2"] = counts["W2"] + 1
+			elseif abs_offset <= W3_limit then
+				counts["W3"] = counts["W3"] + 1
+			elseif abs_offset <= W4_limit then
+				counts["W4"] = counts["W4"] + 1
+			elseif abs_offset <= W5_limit then
+				counts["W5"] = counts["W5"] + 1
+			else
+				counts["Miss"] = counts["Miss"] + 1
+			end
+		end
+	end
+
+	-- Holds/Rolls/Mines are not in sequential_offsets, get them from game ex_counts
+	local game_ex_counts = stageStats and stageStats.ex_counts
+	counts["Held"] = game_ex_counts and game_ex_counts.Held or 0
+	counts["LetGo"] = game_ex_counts and game_ex_counts.LetGo or 0
+	counts["HitMine"] = game_ex_counts and game_ex_counts.HitMine or 0
+
+	local keys = { "W010", "W110", "W2", "W3", "W4", "W5", "Miss", "Held", "LetGo", "HitMine" }
+	for _, key in ipairs(keys) do
+		local value = counts[key]
+		if value ~= nil then
+			total_points = total_points + value * SL.HardExWeights[key]
+		end
+	end
+
+	return math.max(0, math.floor(total_points/total_possible * 10000) / 100), total_points, total_possible
+end
+
 AP.EvaluateCompletedSong = function()
 	local song = GAMESTATE:GetCurrentSong()
 	if not song then return end
-	
-	local songFilePath = song:GetSongFilePath()
-	if not songFilePath then return end
 	
 	-- Extract the folder name from the song's virtual directory path
 	local songDir = song:GetSongDir()
@@ -38,17 +145,22 @@ AP.EvaluateCompletedSong = function()
 			local is_failed = pss:GetFailed()
 			local moneyPercent = pss:GetPercentDancePoints() * 100
 			
-			-- EX Percent and High EX Percent (High EX has use_actual_w0_weight = true)
+			-- EX Percent and High EX Percent (High EX uses CalculateHardExScore)
 			local exPercent = 0
 			local highExPercent = 0
 			if CalculateExScore then
 				local success_ex, val_ex = pcall(CalculateExScore, pn)
 				if success_ex then exPercent = val_ex end
-				
-				local success_hex, val_hex = pcall(CalculateExScore, pn, nil, true)
-				if success_hex then highExPercent = val_hex end
 			else
 				AP.Trace("Archipelago warning: CalculateExScore function not found in global scope!")
+			end
+			
+			if CalculateHardExScore then
+				local success_hex, val_hex = pcall(CalculateHardExScore, pn, nil, true)
+				if success_hex then highExPercent = val_hex end
+			elseif CalculateExScore then
+				local success_hex, val_hex = pcall(CalculateExScore, pn, nil, true)
+				if success_hex then highExPercent = val_hex end
 			end
 			
 			-- Select score percentage based on option
