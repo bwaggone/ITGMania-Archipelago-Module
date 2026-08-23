@@ -143,6 +143,9 @@ AP.EvaluateCompletedSong = function()
 		local pss = STATSMAN:GetCurStageStats():GetPlayerStageStats(pn)
 		if pss then
 			local is_failed = pss:GetFailed()
+			if is_failed and AP.slotOptions.deathlink_enabled then
+				AP.SendDeathLink()
+			end
 			local moneyPercent = pss:GetPercentDancePoints() * 100
 			
 			-- EX Percent and High EX Percent (High EX uses CalculateHardExScore)

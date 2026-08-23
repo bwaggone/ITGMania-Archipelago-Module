@@ -64,14 +64,19 @@ AP.MakePopupActor = function(screenName)
 			local color_highlight = {1, 1, 1, 1}
 			
 			if params.type == "Received" then
-				text = "RECEIVED"
 				local displayName = AP.FormatNotificationName(params.name)
 				if params.sender then
 					sub = displayName .. " (from " .. params.sender .. ")"
 				else
 					sub = displayName
 				end
-				color_highlight = {0.3, 0.9, 0.3, 1}
+				if params.name:sub(1, 7) == "Trap - " then
+					text = "TRAP RECEIVED"
+					color_highlight = {1, 0.5, 0, 1}
+				else
+					text = "RECEIVED"
+					color_highlight = {0.3, 0.9, 0.3, 1}
+				end
 			elseif params.type == "Sent" then
 				text = "CHECK SENT"
 				local displayName = AP.FormatNotificationName(params.name)

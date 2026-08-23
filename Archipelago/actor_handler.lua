@@ -26,6 +26,9 @@ AP.MakeScreenActor = function(screenName)
 				end
 				self:playcommand("InstallSortMenuHook")
 			end,
+			OffCommand = function(self)
+				pcall(AP.ApplyArmedTrapsNow)
+			end,
 			InstallSortMenuHookCommand = function(self)
 				local top = SCREENMAN:GetTopScreen()
 				if not top or top:GetName() ~= "ScreenSelectMusic" then return end
@@ -108,6 +111,15 @@ AP.MakeScreenActor = function(screenName)
 	if screenName:find("ScreenEvaluation") then
 		af[#af+1] = Def.Actor {
 			ModuleCommand = function(self)
+				-- Consume trap and reset states
+				AP.cachedHalfSpeedTarget = {}
+				AP.debugAnnouncedThisSong = {}
+				if #AP.armedTrapQueue > 0 then
+					table.remove(AP.armedTrapQueue, 1)
+				end
+				AP.deathlinkArmed = false
+				AP.ignoreNextDeathReport = false
+
 				AP.EvaluateCompletedSong()
 			end
 		}
@@ -201,6 +213,23 @@ AP.MakeScreenActor = function(screenName)
 						-- Re-broadcast option change so displays update, but guard from recursion
 						MESSAGEMAN:Broadcast("PlayerOptionsChanged", {Player=pn, Clamped=true})
 					end
+				end
+			end
+		}
+
+		af[#af+1] = Def.Actor {
+			ModuleCommand = function(self)
+				pcall(AP.ApplyArmedTrapsNow)
+				self:playcommand("APGameplayDeathLinkPoll")
+			end,
+			APGameplayDeathLinkPollCommand = function(self)
+				if AP.deathlinkArmed then
+					AP.deathlinkArmed = false
+					pcall(AP.TriggerDeathLinkFailure)
+				end
+				local topScreen = SCREENMAN:GetTopScreen()
+				if topScreen and topScreen:GetName() == "ScreenGameplay" then
+					self:sleep(5.0):queuecommand("APGameplayDeathLinkPoll")
 				end
 			end
 		}

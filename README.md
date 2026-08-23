@@ -29,11 +29,14 @@ For details about the world setup, and how the game plays, see the [Docs on the 
 *   **Offline Seed Caching**:
     *   Caches DataPackage definitions (player names, item IDs, location definitions) to `%APPDATA%/Themes/Simply Love/Modules/Archipelago/SAVE_AP_<SeedName>/`.
     *   Does this for all connected players to show what players are unlocking songs for you, and what items you're unlocking for them.
-*   **Real-Time Toast Notifications**:
+*   **Real-Time Notifications**:
     *   Dynamic status messages slide into view in the screen footer when:
         *   Connecting or disconnecting from the server.
         *   Receiving items/charts from another player (e.g., `RECEIVED: Song Name (from PlayerName)`).
         *   Sending checks to another player (e.g., `CHECK SENT: Song Name (to PlayerName)`).
+*   **Trap and Deathlink Support**
+    *  Traps such as forced mini, forced half scroll, and reverse scroll speed
+    *  If deathlink is enabled, failing a song will cause all other players to die. Or if they die in their game, it auto-fails you
 
 ---
 
@@ -79,7 +82,6 @@ This is not yet done.
 ## TODOs
 
 * Support more complex items besides a score booster (combo shield? worst judgement upgrader?)
-* Support traps sent from the server
 * Separate leg of the module for generating a song pool to pass to the server for world generation
 * Allow the user to specify their AP credentials in game
 * Decide if items should just be granted to the player as unlockable items, or if it should be shop based
@@ -87,3 +89,4 @@ This is not yet done.
 * Make overlays look a little closer to the ones that appear in SRPG / ITL
 * Add graphics for AP
 * Improve item balance, so that we can drop speed + mini + bg modifiers sooner than songs
+* Test deathlink, should work in theory

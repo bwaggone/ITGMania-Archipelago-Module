@@ -221,11 +221,23 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"]
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or 15
 					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or false
+					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or false
+					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or {}
 					AP.AP_SM("Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
-					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items))
+					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items) ..
+					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled))
+
+					if AP.slotOptions.deathlink_enabled then
+						AP.AP_SM("DeathLink is enabled. Sending ConnectUpdate...")
+						local connect_update = {
+							["cmd"] = "ConnectUpdate",
+							tags = { "DeathLink" }
+						}
+						self.socket:Send(JsonEncode({ connect_update }), false)
+					end
 				end
 			elseif packet_cmd == "RoomUpdate" then
 				AP.AP_SM("Received RoomUpdate from server.")
@@ -245,17 +257,41 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"] or AP.slotOptions.fail_allowed
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or AP.slotOptions.win_count
 					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or AP.slotOptions.enable_mod_items
+					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or AP.slotOptions.deathlink_enabled
+					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or AP.slotOptions.trap_items
 					AP.AP_SM("Updated Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
-					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items))
+					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items) ..
+					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled))
 				end
 			elseif packet_cmd == "ConnectionRefused" then
 				self.connected = false
 				local errs = packet.errors or {}
 				local errStr = table.concat(errs, ", ")
 				AP.AP_SM("Archipelago connection refused: " .. errStr)
+			elseif packet_cmd == "Bounced" then
+				if packet.tags then
+					local isDeathLink = false
+					for _, tag in ipairs(packet.tags) do
+						if tag == "DeathLink" then
+							isDeathLink = true
+							break
+						end
+					end
+					if isDeathLink then
+						local source = (packet.data and packet.data.source) or "someone"
+						if source ~= AP.SLOT then
+							local topScreen = SCREENMAN:GetTopScreen()
+							if topScreen and topScreen:GetName() == "ScreenGameplay" then
+								AP.deathlinkArmed = true
+								SCREENMAN:SystemMessage("DeathLink received from " .. source .. " - failing song!")
+								AP.Trace("Received DeathLink from " .. source)
+							end
+						end
+					end
+				end
 			elseif packet_cmd == "PrintJSON" then
 				local message = AP.ParsePrintJSON(packet.data)
 				AP.AP_SM(message)
@@ -296,6 +332,12 @@ AP.HandleMessage = function(self, msg)
 						if isNewItem then
 							local sender = AP.GetPlayerName(item.player)
 							AP.QueueNotification({ type = "Received", name = name, sender = sender })
+
+							-- Queue trap if received during game session
+							if name:sub(1, 7) == "Trap - " then
+								table.insert(AP.armedTrapQueue, name)
+								SCREENMAN:SystemMessage("Trap incoming: " .. name .. " (queued - applies to your next song)")
+							end
 						end
 					end
 					AP.initialSyncComplete = true

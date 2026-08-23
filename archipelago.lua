@@ -27,7 +27,15 @@ AP.slotOptions = {
 	score_type = 1,
 	passing_score = 0,
 	fail_allowed = false,
+	deathlink_enabled = false,
+	trap_items = {},
 }
+
+-- Trap & DeathLink States
+AP.armedTrapQueue = {}
+AP.deathlinkArmed = false
+AP.ignoreNextDeathReport = false
+AP.cachedHalfSpeedTarget = {}
 
 -- UI state
 AP.notificationQueue = {}
@@ -88,6 +96,8 @@ loadSubFile("cache.lua")
 loadSubFile("modifiers.lua")
 loadSubFile("boosters.lua")
 loadSubFile("playlist.lua")
+loadSubFile("traps.lua")
+loadSubFile("deathlink.lua")
 loadSubFile("evaluator.lua")
 loadSubFile("network.lua")
 loadSubFile("ui.lua")
