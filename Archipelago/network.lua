@@ -223,12 +223,20 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or false
 					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or false
 					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or {}
+					AP.slotOptions.game_mode = packet["slot_data"]["game_mode"] or 0
+					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or ""
+					AP.slotOptions.bosskey_name = packet["slot_data"]["bosskey_name"] or "Boss Key"
+					AP.slotOptions.bosskeys_required = packet["slot_data"]["bosskeys_required"] or 0
 					AP.AP_SM("Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
 					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items) ..
-					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled))
+					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled) ..
+					   ", Game Mode: " .. tostring(AP.slotOptions.game_mode) ..
+					   ", Goal: " .. tostring(AP.slotOptions.goal_song) ..
+					   ", Boss Key Name: " .. tostring(AP.slotOptions.bosskey_name) ..
+					   ", Required: " .. tostring(AP.slotOptions.bosskeys_required))
 
 					if AP.slotOptions.deathlink_enabled then
 						AP.AP_SM("DeathLink is enabled. Sending ConnectUpdate...")
@@ -259,12 +267,20 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or AP.slotOptions.enable_mod_items
 					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or AP.slotOptions.deathlink_enabled
 					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or AP.slotOptions.trap_items
+					AP.slotOptions.game_mode = packet["slot_data"]["game_mode"] or AP.slotOptions.game_mode
+					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or AP.slotOptions.goal_song
+					AP.slotOptions.bosskey_name = packet["slot_data"]["bosskey_name"] or AP.slotOptions.bosskey_name
+					AP.slotOptions.bosskeys_required = packet["slot_data"]["bosskeys_required"] or AP.slotOptions.bosskeys_required
 					AP.AP_SM("Updated Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
 					   ", Enable Mod Items: " .. tostring(AP.slotOptions.enable_mod_items) ..
-					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled))
+					   ", DeathLink: " .. tostring(AP.slotOptions.deathlink_enabled) ..
+					   ", Game Mode: " .. tostring(AP.slotOptions.game_mode) ..
+					   ", Goal: " .. tostring(AP.slotOptions.goal_song) ..
+					   ", Boss Key Name: " .. tostring(AP.slotOptions.bosskey_name) ..
+					   ", Required: " .. tostring(AP.slotOptions.bosskeys_required))
 				end
 			elseif packet_cmd == "ConnectionRefused" then
 				self.connected = false
@@ -352,5 +368,17 @@ AP.HandleMessage = function(self, msg)
 				AP.Trace("Received unhandled cmd: " .. tostring(packet_cmd))
 			end
 		end
+	end
+end
+
+AP.SendVictoryStatus = function()
+	if AP.apHandlerInstance and AP.apHandlerInstance.connected and AP.apHandlerInstance.socket then
+		AP.AP_SM("Sending CLIENT_GOAL status update to server...")
+		local status_packet = {
+			["cmd"] = "StatusUpdate",
+			status = 30 -- ClientStatus.CLIENT_GOAL
+		}
+		local payload = JsonEncode({ status_packet })
+		AP.apHandlerInstance.socket:Send(payload, false)
 	end
 end

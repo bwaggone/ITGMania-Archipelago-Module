@@ -29,6 +29,10 @@ AP.slotOptions = {
 	fail_allowed = false,
 	deathlink_enabled = false,
 	trap_items = {},
+	game_mode = 0,
+	goal_song = "",
+	bosskey_name = "Boss Key",
+	bosskeys_required = 0,
 }
 
 -- Trap & DeathLink States

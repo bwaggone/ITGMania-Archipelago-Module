@@ -130,3 +130,59 @@ AP.GetChecksForSong = function(chart_name)
 	return completed, total
 end
 
+AP.GetReceivedItemCount = function(itemName)
+	local count = 0
+	if AP.AP_AllReceivedItems then
+		for _, item in ipairs(AP.AP_AllReceivedItems) do
+			local name = AP.itemNames[item.item]
+			if name == itemName then
+				count = count + 1
+			end
+		end
+	end
+	return count
+end
+
+AP.IsSongLocked = function(song)
+	if not song then return false end
+	local songDir = song:GetSongDir()
+	local parts = {}
+	for part in songDir:gmatch("[^/]+") do
+		table.insert(parts, part)
+	end
+	local folderName = parts[#parts]
+	if not folderName then return false end
+
+	local chart_name = AP.folderToChartName[folderName]
+	if not chart_name then
+		return false -- Not part of the AP seed, not locked
+	end
+
+	-- If it's Boss Key mode and this is the Goal Song, check boss key count
+	if AP.slotOptions.game_mode == 1 and chart_name == AP.slotOptions.goal_song then
+		local collected = AP.GetReceivedItemCount(AP.slotOptions.bosskey_name)
+		local required = AP.slotOptions.bosskeys_required or 0
+		return collected < required
+	end
+
+	-- For normal AP songs, verify if they have been received as an item
+	local unlockedSongs = AP.GetUnlockedSongs()
+	for _, unlockedChart in ipairs(unlockedSongs) do
+		local uParts = {}
+		for part in unlockedChart:gmatch("[^/]+") do
+			table.insert(uParts, part)
+		end
+		local uFolder = nil
+		if #uParts >= 2 then
+			uFolder = uParts[2]
+		elseif #uParts == 1 then
+			uFolder = uParts[1]
+		end
+		if uFolder == folderName then
+			return false -- Found in received items, so it is unlocked
+		end
+	end
+
+	return true -- Not found in received items, so it is locked
+end
+

@@ -187,23 +187,41 @@ AP.MakeStatusOverlayActor = function()
 		-- Update metadata: Room and Seed names
 		local room_str = "Room: " .. tostring(AP.SLOT)
 		local seed_str = "Seed: " .. tostring(AP.seedName)
-		container:GetChild("ConnectedGroup"):GetChild("RoomSeedText"):settext(room_str .. "    |    " .. seed_str)
+		local mode_str = ""
+		if AP.slotOptions.game_mode == 1 then
+			local collected = AP.GetReceivedItemCount(AP.slotOptions.bosskey_name)
+			local required = AP.slotOptions.bosskeys_required or 0
+			local goal_unlocked = collected >= required
+			local goal_status = goal_unlocked and "UNLOCKED" or "LOCKED"
+			local display_goal = AP.FormatNotificationName(AP.slotOptions.goal_song)
+			mode_str = "    |    Goal: " .. display_goal .. " (" .. goal_status .. ")"
+		end
+		container:GetChild("ConnectedGroup"):GetChild("RoomSeedText"):settext(room_str .. "    |    " .. seed_str .. mode_str)
 		
-		-- Update goal progress numbers: count unique song clears by checking how many songs have their "-0" check completed
-		local completed_clears = 0
-		if AP.locationIds and AP.activeLocationIds then
-			for name, id in pairs(AP.locationIds) do
-				if name:match("%-0$") and AP.activeLocationIds[id] then
-					if AP.checkedLocations and AP.checkedLocations[id] then
-						completed_clears = completed_clears + 1
+		local progress_text = ""
+		local progress_pct = 0
+		if AP.slotOptions.game_mode == 1 then
+			local collected = AP.GetReceivedItemCount(AP.slotOptions.bosskey_name)
+			local required = AP.slotOptions.bosskeys_required or 0
+			progress_pct = math.min(1.0, collected / math.max(1, required))
+			progress_text = string.format("%s Progress: %d / %d collected (%.1f%%)", AP.slotOptions.bosskey_name, collected, required, progress_pct * 100)
+		else
+			-- Update goal progress numbers: count unique song clears by checking how many songs have their "-0" check completed
+			local completed_clears = 0
+			if AP.locationIds and AP.activeLocationIds then
+				for name, id in pairs(AP.locationIds) do
+					if name:match("%-0$") and AP.activeLocationIds[id] then
+						if AP.checkedLocations and AP.checkedLocations[id] then
+							completed_clears = completed_clears + 1
+						end
 					end
 				end
 			end
+			local target_clears = AP.slotOptions.win_count or 15
+			progress_pct = math.min(1.0, completed_clears / math.max(1, target_clears))
+			progress_text = string.format("AP Goal Progress: %d / %d clears (%.1f%%)", completed_clears, target_clears, progress_pct * 100)
 		end
-		local target_clears = AP.slotOptions.win_count or 15
-		local progress_pct = math.min(1.0, completed_clears / math.max(1, target_clears))
 		
-		local progress_text = string.format("AP Goal Progress: %d / %d clears (%.1f%%)", completed_clears, target_clears, progress_pct * 100)
 		container:GetChild("ConnectedGroup"):GetChild("ProgressText"):settext(progress_text)
 		
 		-- Update progress bar quad width

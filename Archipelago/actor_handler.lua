@@ -219,6 +219,19 @@ AP.MakeScreenActor = function(screenName)
 
 		af[#af+1] = Def.Actor {
 			ModuleCommand = function(self)
+				local song = GAMESTATE:GetCurrentSong()
+				if song and AP.IsSongLocked(song) then
+					local songDir = song:GetSongDir()
+					local parts = {}
+					for part in songDir:gmatch("[^/]+") do table.insert(parts, part) end
+					local folderName = parts[#parts]
+					local chart_name = AP.folderToChartName[folderName]
+					if chart_name == AP.slotOptions.goal_song then
+						SCREENMAN:SystemMessage("Warning: Goal Song is locked! Clears will not count until you have all Boss Keys.")
+					else
+						SCREENMAN:SystemMessage("Warning: Song is locked! Clears will not count until unlocked in Archipelago.")
+					end
+				end
 				pcall(AP.ApplyArmedTrapsNow)
 				self:playcommand("APGameplayDeathLinkPoll")
 			end,

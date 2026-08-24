@@ -130,6 +130,11 @@ AP.EvaluateCompletedSong = function()
 		-- Not an AP song, ignore silently
 		return
 	end
+
+	if AP.IsSongLocked(song) then
+		AP.AP_SM("Song is locked in Archipelago! Suppressing location check evaluation.")
+		return
+	end
 	
 	AP.AP_SM("Evaluating completed AP song: " .. chart_name)
 	
@@ -297,5 +302,32 @@ AP.FinalizeEvaluationAndSendChecks = function()
 	else
 		AP.AP_SM("No locations to check or client is not connected.")
 	end
-end
 
+	-- Check for victory
+	local is_victory = false
+	if AP.slotOptions.game_mode == 1 then
+		-- Boss Key mode victory: Goal Song passed
+		if AP.slotOptions.goal_song then
+			local goal_loc_name = AP.slotOptions.goal_song .. "-0"
+			local goal_loc_id = AP.locationIds[goal_loc_name]
+			if goal_loc_id and AP.checkedLocations[goal_loc_id] then
+				is_victory = true
+			end
+		end
+	else
+		-- Clear Count mode victory: total clears >= win_count
+		local total_clears = 0
+		for name, id in pairs(AP.locationIds) do
+			if name:match("%-0$") and AP.checkedLocations[id] then
+				total_clears = total_clears + 1
+			end
+		end
+		if total_clears >= (AP.slotOptions.win_count or 15) then
+			is_victory = true
+		end
+	end
+
+	if is_victory then
+		AP.SendVictoryStatus()
+	end
+end

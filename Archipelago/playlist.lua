@@ -31,6 +31,32 @@ AP.UpdatePlaylist = function()
 			end
 		end
 	end
+
+	-- If in Boss Key mode, check if the Goal Song is unlocked, and explicitly add it to the playlist
+	if AP.slotOptions.game_mode == 1 and AP.slotOptions.goal_song ~= "" then
+		local collected = AP.GetReceivedItemCount(AP.slotOptions.bosskey_name)
+		local required = AP.slotOptions.bosskeys_required or 0
+		if collected >= required then
+			local parts = {}
+			for part in AP.slotOptions.goal_song:gmatch("[^/]+") do
+				table.insert(parts, part)
+			end
+			local goalFolder = nil
+			if #parts >= 2 then
+				goalFolder = parts[2]
+			elseif #parts == 1 then
+				goalFolder = parts[1]
+			end
+			
+			if goalFolder then
+				playlist_content = playlist_content .. goalFolder .. "\n"
+				count = count + 1
+				if not SONGMAN:FindSong(goalFolder) then
+					AP.Trace("Archipelago warning: Unlocked Goal Song is not installed: " .. goalFolder)
+				end
+			end
+		end
+	end
 	
 	if count > 0 then
 		local file = RageFileUtil.CreateRageFile()
