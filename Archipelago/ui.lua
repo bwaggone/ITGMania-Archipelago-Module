@@ -245,7 +245,7 @@ AP.MakeStatusOverlayActor = function()
 				local comp, tot = AP.GetChecksForSong(song_name)
 				
 				-- Trim filename to show only the folder path
-				local display_name = song_name:match("^(.-)/[^/]+$") or song_name
+				local display_name = AP.FormatNotificationName(song_name)
 				row:GetChild("Name"):settext(idx .. ". " .. display_name)
 				row:GetChild("Checks"):settext(string.format("[ %d / %d ]", comp, tot))
 				
@@ -800,7 +800,7 @@ AP.MakeEvaluationOverlayActor = function()
 		if not AP.LastEvaluation or not AP.LastEvaluation.chart_name then return end
 		
 		local chart_name = AP.LastEvaluation.chart_name
-		local display_name = chart_name:match("^(.-)/[^/]+$") or chart_name
+		local display_name = AP.FormatNotificationName(chart_name)
 		container:GetChild("SongNameText"):settext(display_name)
 		
 		local pn = GAMESTATE:GetEnabledPlayers()[1] or PLAYER_1
