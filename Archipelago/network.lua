@@ -54,17 +54,23 @@ AP.HandleMessage = function(self, msg)
 	if msg.type == "WebSocketMessageType_Open" then
 		AP.AP_SM("WebSocket transport connected. Waiting for RoomInfo...")
 	elseif msg.type == "WebSocketMessageType_Close" then
+		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
-		AP.AP_SM("Archipelago connection closed: " .. tostring(msg.reason))
-		AP.QueueNotification({ type = "Disconnected" })
+		if wasConnected then
+			AP.AP_SM("Archipelago connection closed: " .. tostring(msg.reason))
+			AP.QueueNotification({ type = "Disconnected" })
+		end
 	elseif msg.type == "WebSocketMessageType_Error" then
+		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
-		AP.AP_SM("Archipelago connection error: " .. tostring(msg.reason))
-		AP.QueueNotification({ type = "Disconnected" })
+		if wasConnected then
+			AP.AP_SM("Archipelago connection error: " .. tostring(msg.reason))
+			AP.QueueNotification({ type = "Disconnected" })
+		end
 	elseif msg.type == "WebSocketMessageType_Message" then
 		local success, packets = pcall(JsonDecode, msg.data)
 		if not success then

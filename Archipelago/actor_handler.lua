@@ -56,14 +56,31 @@ AP.MakeScreenActor = function(screenName)
 					end
 				end
 
+				if not sortmenu.custom_functions["AP Config Tool"] then
+					sortmenu.custom_functions["AP Config Tool"] = function(event)
+						local screen = SCREENMAN:GetTopScreen()
+						if not screen or screen:GetName() ~= "ScreenSelectMusic" then return end
+						local ov = screen:GetChild("Overlay")
+						if ov then
+							ov:queuecommand("DirectInputToEngine")
+						end
+						MESSAGEMAN:Broadcast("APToggleConfigOverlay")
+					end
+				end
+
 				if sortmenu.wheel_options then
-					local existingIndex = nil
+					local statusIndex = nil
+					local configIndex = nil
 					local insertAfterIndex = nil
 
 					for i = 1, #sortmenu.wheel_options do
 						local option = sortmenu.wheel_options[i]
-						if option and option[1] and option[1][1] == "Archipelago" and option[1][2] == "AP Status" then
-							existingIndex = i
+						if option and option[1] and option[1][1] == "Archipelago" then
+							if option[1][2] == "AP Status" then
+								statusIndex = i
+							elseif option[1][2] == "AP Config Tool" then
+								configIndex = i
+							end
 						elseif option and option[1] and option[1][1] == "ArrowCloud" and option[1][2] == "ACLeaderboard" then
 							insertAfterIndex = i
 						elseif insertAfterIndex == nil and option and option[1] and option[1][1] == "NextPlease" and option[1][2] == "SwitchProfile" then
@@ -71,20 +88,28 @@ AP.MakeScreenActor = function(screenName)
 						end
 					end
 
-					local apOption = existingIndex and sortmenu.wheel_options[existingIndex]
+					local statusOption = statusIndex and sortmenu.wheel_options[statusIndex]
 						or { { "Archipelago", "AP Status" }, function() return true end }
+					local configOption = configIndex and sortmenu.wheel_options[configIndex]
+						or { { "Archipelago", "AP Config Tool" }, function() return true end }
 
-					if existingIndex ~= nil then
-						table.remove(sortmenu.wheel_options, existingIndex)
-						if insertAfterIndex ~= nil and existingIndex < insertAfterIndex then
+					local to_remove = {}
+					if statusIndex then table.insert(to_remove, statusIndex) end
+					if configIndex then table.insert(to_remove, configIndex) end
+					table.sort(to_remove, function(a,b) return a > b end)
+					for _, idx in ipairs(to_remove) do
+						table.remove(sortmenu.wheel_options, idx)
+						if insertAfterIndex and idx < insertAfterIndex then
 							insertAfterIndex = insertAfterIndex - 1
 						end
 					end
 
 					if insertAfterIndex ~= nil then
-						table.insert(sortmenu.wheel_options, insertAfterIndex + 1, apOption)
+						table.insert(sortmenu.wheel_options, insertAfterIndex + 1, configOption)
+						table.insert(sortmenu.wheel_options, insertAfterIndex + 1, statusOption)
 					else
-						table.insert(sortmenu.wheel_options, apOption)
+						table.insert(sortmenu.wheel_options, statusOption)
+						table.insert(sortmenu.wheel_options, configOption)
 					end
 				end
 			end
@@ -107,6 +132,7 @@ AP.MakeScreenActor = function(screenName)
 		}
 		
 		af[#af+1] = AP.MakeStatusOverlayActor()
+		af[#af+1] = AP.MakeConfigOverlayActor()
 	end
 	if screenName:find("ScreenEvaluation") then
 		af[#af+1] = Def.Actor {
