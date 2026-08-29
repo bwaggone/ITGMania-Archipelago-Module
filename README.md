@@ -43,13 +43,14 @@ For details about the world setup, and how the game plays, see the [Docs on the 
 ## ⚙️ Installation & Setup
 
 ### 1. Client Installation
-1. Copy `archipelago.lua` and the `Archipelago` folder into your ITGMania theme directory under:
+1. Copy `archipelago.lua`, `archipelago.ini`, and the `Archipelago` folder into your ITGMania theme directory under:
    `ITGMania/Themes/Simply Love/Modules/`
-2. Open `archipelago.lua` in a text editor and configure your connection credentials at the top of the file:
-   ```lua
-   AP.HOST = "ws://localhost:38281"  -- Replace with your Archipelago server address
-   AP.SLOT = "ITGManiaPlayer"        -- Replace with your slot/player name
-   AP.PASSWORD = ""                  -- Replace with your room password if set
+2. Open `archipelago.ini` in a text editor and configure your connection credentials:
+   ```ini
+   [Archipelago]
+   Host = ws://localhost:38281
+   Slot = ITGManiaPlayer
+   Password =
    ```
    *Note: While optimized for standard **Simply Love**, UI elements might require styling adjustments on theme forks (like Zmod, ArrowCloud, or DigitalDance).*
    *Extra Note: This is incompatible with DeadSync until it can support themes and Modules. Assuming DeadSync does not implement this module's functionality directly.*
