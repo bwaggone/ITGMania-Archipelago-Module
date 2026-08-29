@@ -58,18 +58,24 @@ AP.HandleMessage = function(self, msg)
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
+		AP.Trace("Archipelago connection closed: " .. tostring(msg.reason))
 		if wasConnected then
-			AP.Trace("Archipelago connection closed: " .. tostring(msg.reason))
 			AP.QueueNotification({ type = "Disconnected" })
+		elseif not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
+			AP.QueueNotification({ type = "Disconnected" })
+			AP.hasShownDisconnectedPopup = true
 		end
 	elseif msg.type == "WebSocketMessageType_Error" then
 		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
+		AP.Trace("Archipelago connection error: " .. tostring(msg.reason))
 		if wasConnected then
-			AP.Trace("Archipelago connection error: " .. tostring(msg.reason))
 			AP.QueueNotification({ type = "Disconnected" })
+		elseif not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
+			AP.QueueNotification({ type = "Disconnected" })
+			AP.hasShownDisconnectedPopup = true
 		end
 	elseif msg.type == "WebSocketMessageType_Message" then
 		local success, packets = pcall(JsonDecode, msg.data)
@@ -182,6 +188,7 @@ AP.HandleMessage = function(self, msg)
 				AP.initialSyncComplete = false
 				AP.connectedSlotName = packet.slot
 				AP.slotID = packet.slot
+				AP.hasShownDisconnectedPopup = false
 				AP.LoadBonusUsage()
 				AP.Trace("Successfully connected to Archipelago! Slot: " .. tostring(packet.slot))
 				

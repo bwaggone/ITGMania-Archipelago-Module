@@ -1,6 +1,8 @@
 local AP = ...
 
 AP.UpdatePlaylist = function()
+	local apHandler = AP.GetAPHandlerInstance()
+	if not apHandler or not apHandler.connected then return end
 	if AP.seedName == "Unknown" then return end
 	local path = THEME:GetCurrentThemeDirectory() .. "Other/Playlists/Archipelago - " .. AP.seedName .. ".txt"
 	local playlist_content = "--- Archipelago\n"

@@ -71,6 +71,9 @@ AP.cachedHalfSpeedTarget = {}
 -- UI state
 AP.notificationQueue = {}
 AP.isNotificationActive = false
+AP.hasShownConnectedPopup = false
+AP.hasShownDisconnectedPopup = false
+AP.hasStartedConnectionTimer = false
 
 -- Define local logging wrappers that prepend MODULE_TAG to all screen and log outputs
 local original_SM = SM

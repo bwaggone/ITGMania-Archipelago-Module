@@ -15,7 +15,8 @@ AP.MakeScreenActor = function(screenName)
 		af[#af+1] = Def.Actor {
 			ModuleCommand = function(self)
 				AP.ClampedWarnings = {} -- Reset warnings on music wheel
-				if AP.seedName and AP.seedName ~= "Unknown" and SONGMAN:GetPreferredSortSongs() then
+				local apHandler = AP.GetAPHandlerInstance()
+				if apHandler and apHandler.connected and AP.seedName and AP.seedName ~= "Unknown" and SONGMAN:GetPreferredSortSongs() then
 					local top = SCREENMAN:GetTopScreen()
 					if top and top:GetName() == "ScreenSelectMusic" then
 						local wheel = top:GetMusicWheel()

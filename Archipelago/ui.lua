@@ -18,6 +18,21 @@ AP.MakePopupActor = function(screenName)
 		InitCommand = function(self)
 			self:xy(-300, _screen.h - 100)
 			isScreenActive = false
+			
+			-- Start a timer on the first popup actor that initializes to check connection status after 5s
+			if not AP.hasStartedConnectionTimer then
+				AP.hasStartedConnectionTimer = true
+				self:sleep(5):queuecommand("CheckInitialConnection")
+			end
+		end,
+		CheckInitialConnectionCommand = function(self)
+			local apHandler = AP.GetAPHandlerInstance()
+			local connected = apHandler and apHandler.connected
+			if not connected and not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
+				AP.Trace("Initial connection check failed (timeout). Showing offline status.")
+				AP.QueueNotification({ type = "Disconnected" })
+				AP.hasShownDisconnectedPopup = true
+			end
 		end,
 		ScreenChangedMessageCommand = function(self)
 			local screen = SCREENMAN:GetTopScreen()
@@ -352,21 +367,24 @@ AP.MakeStatusOverlayActor = function()
 		end
 		
 		if key == "DeviceButton_r" or key == "DeviceButton_R" then
-			-- Sync and regenerate playlist
-			AP.UpdatePlaylist()
-			
 			local apHandler = AP.GetAPHandlerInstance()
-			if apHandler and apHandler.connected and apHandler.socket then
-				local sync_packet = { ["cmd"] = "Sync" }
-				local payload = JsonEncode({ sync_packet })
-				apHandler.socket:Send(payload, false)
-				AP.Trace("Requested Archipelago sync...")
+			if apHandler and apHandler.connected then
+				-- Sync and regenerate playlist
+				AP.UpdatePlaylist()
+				
+				if apHandler.socket then
+					local sync_packet = { ["cmd"] = "Sync" }
+					local payload = JsonEncode({ sync_packet })
+					apHandler.socket:Send(payload, false)
+					AP.Trace("Requested Archipelago sync...")
+				end
+				
+				SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))
+				MESSAGEMAN:Broadcast("APStatusRefresh")
 			else
-				AP.Trace("Regenerated Archipelago playlist locally.")
+				AP.Trace("Cannot sync or update playlist: Offline.")
+				SOUND:PlayOnce(THEME:GetPathS("Common", "Cancel"))
 			end
-			
-			SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))
-			MESSAGEMAN:Broadcast("APStatusRefresh")
 			return true
 		end
 		
