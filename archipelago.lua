@@ -35,6 +35,33 @@ AP.slotOptions = {
 	bosskeys_required = 0,
 }
 
+AP.configState = {
+	player_name = "Player",
+	game_mode = 0, -- 0 = clear_count, 1 = boss_key
+	win_count = 15,
+	goal_song = "",
+	boss_key_name = 0, -- 0 = Boss Key, 1 = Boss Song Fragment, 2 = McGuffin, etc.
+	boss_key_count = 10,
+	boss_keys_required = 8,
+	fail_allowed = false,
+	passing_score = 0,
+	score_type = 1, -- 0 = money, 1 = ex, 2 = high_ex
+	number_of_charts = 20,
+	number_of_starting_charts = 3,
+	include_85_score_checks = false,
+	include_90_score_checks = false,
+	include_96_score_checks = false,
+	include_98_score_checks = false,
+	include_99_score_checks = false,
+	include_quad_score_checks = false,
+	include_quint_score_checks = false,
+	enable_mod_items = false,
+	death_link = false,
+	trap_chance = 0,
+	trap_items = { "Trap - Reverse Scroll", "Trap - Dark", "Trap - Half Speed", "Trap - Mini" },
+	custom_song_pool = {}
+}
+
 -- Trap & DeathLink States
 AP.armedTrapQueue = {}
 AP.deathlinkArmed = false
@@ -105,6 +132,7 @@ loadSubFile("deathlink.lua")
 loadSubFile("evaluator.lua")
 loadSubFile("network.lua")
 loadSubFile("ui.lua")
+loadSubFile("config_ui.lua")
 loadSubFile("actor_handler.lua")
 
 -- Start the connection handler

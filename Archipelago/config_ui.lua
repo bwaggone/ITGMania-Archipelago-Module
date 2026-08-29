@@ -56,6 +56,7 @@ end
 
 local settings = {
 	{ name = "Player Name", key = "player_name", type = "text" },
+	{ name = "Configure Song Pool...", type = "submenu", target = "songs" },
 	{ name = "Game Mode", key = "game_mode", type = "choice", choices = { "Clear Count", "Boss Key" } },
 	{ name = "Win Count", key = "win_count", type = "range", min = 1, max = 200, visible = function(s) return s.game_mode == 0 end },
 	{ name = "Goal Song", key = "goal_song", type = "goal_song", visible = function(s) return s.game_mode == 1 end },
@@ -78,7 +79,6 @@ local settings = {
 	{ name = "Enable DeathLink", key = "death_link", type = "toggle" },
 	{ name = "Trap Chance", key = "trap_chance", type = "range", min = 0, max = 100 },
 	{ name = "Configure Traps...", type = "submenu", target = "traps" },
-	{ name = "Configure Song Pool...", type = "submenu", target = "songs" },
 	{ name = "--- GENERATE YAML ---", type = "action", action = "generate" }
 }
 
@@ -169,6 +169,27 @@ AP.MakeConfigOverlayActor = function()
 		container:visible(overlay_visible)
 		
 		if not overlay_visible then return end
+		
+		-- Clamp selectedIndex and scrollOffset to valid range if list size changed dynamically
+		local itemsCount = 0
+		if viewState == "main" then
+			itemsCount = #getVisibleSettings()
+		elseif viewState == "traps" then
+			itemsCount = #hardcodedTraps
+		elseif viewState == "songs" then
+			itemsCount = #visibleSongRows
+		elseif viewState == "goal_song" then
+			itemsCount = #getGoalSongsList() + 2
+		end
+
+		if selectedIndex > itemsCount then
+			selectedIndex = itemsCount
+			if selectedIndex < 1 then selectedIndex = 1 end
+		end
+		if scrollOffset > itemsCount - 11 then
+			scrollOffset = itemsCount - 11
+			if scrollOffset < 1 then scrollOffset = 1 end
+		end
 		
 		local title = container:GetChild("Title")
 		local list_af = container:GetChild("List")
@@ -310,12 +331,22 @@ AP.MakeConfigOverlayActor = function()
 						if idx == selectedIndex then
 							cursor = (GetTimeSinceStart() % 0.8 < 0.4) and "|" or " "
 						end
-						displayName = "1. [ Search/Filter: " .. (goalSongFilter ~= "" and goalSongFilter or "") .. cursor .. " ]"
+						displayName = "[ Search/Filter: " .. (goalSongFilter ~= "" and goalSongFilter or "") .. cursor .. " ]"
 					elseif idx == 2 then
-						displayName = "2. [ Random / Blank ]"
+						displayName = "[ Random / Blank ]"
 					else
 						local path = goalSongs[idx - 2]
-						displayName = idx .. ". " .. AP.FormatNotificationName(path)
+						local displayNameStr = path
+						if path:find("/") then
+							local parts = {}
+							for part in path:gmatch("[^/]+") do
+								table.insert(parts, part)
+							end
+							if #parts >= 2 then
+								displayNameStr = parts[1] .. " / " .. parts[2]
+							end
+						end
+						displayName = displayNameStr
 					end
 					
 					row:GetChild("Name"):settext(displayName)
@@ -389,18 +420,7 @@ AP.MakeConfigOverlayActor = function()
 			file:Write(content)
 			file:Close()
 			
-			local helper_file = RageFileUtil.CreateRageFile()
-			if helper_file:Open("Archipelago_YAML_Path.txt", 2) then
-				local helper_text = "ITGMania Archipelago YAML Configuration File:\n" ..
-					"Themes/Simply Love/Modules/Archipelago/" .. filename .. "\n\n" ..
-					"This file was successfully generated in your ITGMania installation folder.\n" ..
-					"Please copy this file into your Archipelago Multiworld 'Players/' folder."
-				helper_file:Write(helper_text)
-				helper_file:Close()
-			end
-			helper_file:destroy()
-			
-			SCREENMAN:SystemMessage("YAML generated! Wrote file path to Archipelago_YAML_Path.txt in game root.")
+			SCREENMAN:SystemMessage("YAML generated under Themes/Simply Love/Modules/Archipelago/!")
 			SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))
 			
 			overlay_visible = false
@@ -634,6 +654,22 @@ AP.MakeConfigOverlayActor = function()
 						selectedIndex = 1
 						scrollOffset = 1
 						goalSongFilter = ""
+						if not localLibrary then
+							SCREENMAN:SystemMessage("Scanning local ITGMania songs...")
+							localLibrary = AP.ScanLocalLibrary()
+							for _, path in ipairs(AP.configState.custom_song_pool or {}) do
+								selectedSongs[path] = true
+							end
+						end
+						-- Sync custom song pool from active checkbox state
+						local pool = {}
+						for path, checked in pairs(selectedSongs) do
+							if checked then
+								table.insert(pool, path)
+							end
+						end
+						table.sort(pool)
+						AP.configState.custom_song_pool = pool
 						cachedGoalSongs = nil
 						SOUND:PlayOnce(THEME:GetPathS("Common", "Start"))
 					elseif setting.type == "action" and setting.action == "generate" then
@@ -800,9 +836,7 @@ AP.MakeConfigOverlayActor = function()
 			scrollOffset = 1
 			viewState = "main"
 			self:SetUpdateFunction(function(self)
-				if overlay_visible then
-					updateUI(self)
-				end
+				updateUI(self)
 			end)
 		end,
 		ModuleCommand = function(self)
