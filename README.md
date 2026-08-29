@@ -1,4 +1,4 @@
-# ITGMania Archipelago Module
+# ITGMania Archipelago Module (v 0.5.0)
 
 A Lua module for **ITGMania** that functions as a client integration for the **Archipelago Multiworld Randomizer**.
 It automatically synchronizes song unlocks, sends checks upon song clears/score thresholds, manages progression
@@ -45,7 +45,7 @@ For details about the world setup and options, see the [Archipelago ITGMania Wor
 
 ### 1. Client Installation
 1. Copy `archipelago.lua`, `archipelago.ini`, and the `Archipelago` folder into your ITGMania theme directory under:
-   `ITGMania/Themes/[THEME_NAME]/Modules/`
+   `.../Themes/[THEME_NAME]/Modules/`
 2. Open `archipelago.ini` in a text editor and configure your connection credentials:
    ```ini
    [Archipelago]
