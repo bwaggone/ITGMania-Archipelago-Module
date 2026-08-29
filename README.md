@@ -9,11 +9,15 @@ For details about the world setup, and how the game plays, see the [Docs on the 
 ---
 
 ## 🌟 Key Features
-
+*   **Two supported game modes:** Either hunt for boss keys and clear the boss song, or go for a simple clear count.
+*   **YAML Generator Builtin:**
+    * Use the tool from the sort menu, and you'll be able to generate your yaml to generate the AP World.
+    * Automatically detects your loaded songs, and can generate a custom song pool based on it
+    * Writes yaml to `.../Themes/[THEME_NAME]/Modules/Archipelago/YAMLS/...`
 *   **Persistent WebSocket Connection**: A background client connection that runs continuously in ITGMania. It
       handles handshakes, syncs item unlocks, and automatically submits completed location checks.
 *   **Dynamic Playlist & Live Song Wheel Updates**:
-    *   Unlocked song charts are written to a local playlist file: `%APPDATA%/Themes/Simply Love/Other/Playlists/Archipelago - <SeedName>.txt`.
+    *   Unlocked song charts are written to a local playlist file: `.../Themes/[THEME_NAME]/Other/Playlists/Archipelago - <SeedName>.txt`.
     *   The module forces the StepMania C++ engine to reload the playlist from disk when new songs arrive. If you are on the song selection screen
         (`ScreenSelectMusic`) and sorting by **Preferred**, the music wheel refreshes automatically so new unlocks appear instantly.
 *   **In-Game Status Overlay (`F10`)**:
@@ -27,7 +31,7 @@ For details about the world setup, and how the game plays, see the [Docs on the 
     *   Allows you to distribute boosters to your **Money**, **EX**, or **High EX** performance.
     *   Displays a live preview of what check thresholds will unlock (e.g. *Clear Check 1*, *85% Score Check*) before you commit and send checks.
 *   **Offline Seed Caching**:
-    *   Caches DataPackage definitions (player names, item IDs, location definitions) to `%APPDATA%/Themes/Simply Love/Modules/Archipelago/SAVE_AP_<SeedName>/`.
+    *   Caches DataPackage definitions (player names, item IDs, location definitions) to `.../Themes/[THEME_NAME]/Modules/Archipelago/SAVE_AP_<SeedName>/`.
     *   Does this for all connected players to show what players are unlocking songs for you, and what items you're unlocking for them.
 *   **Real-Time Notifications**:
     *   Dynamic status messages slide into view in the screen footer when:
@@ -44,7 +48,7 @@ For details about the world setup, and how the game plays, see the [Docs on the 
 
 ### 1. Client Installation
 1. Copy `archipelago.lua`, `archipelago.ini`, and the `Archipelago` folder into your ITGMania theme directory under:
-   `ITGMania/Themes/Simply Love/Modules/`
+   `ITGMania/Themes/[THEME_NAME]/Modules/`
 2. Open `archipelago.ini` in a text editor and configure your connection credentials:
    ```ini
    [Archipelago]

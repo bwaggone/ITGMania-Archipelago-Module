@@ -94,10 +94,48 @@ AP.Trace("Loaded Archipelago client module.")
 
 -- Guarded stub declarations (only for tooling; real objects provided by engine at runtime)
 if not PROFILEMAN then PROFILEMAN = { GetProfileDir = function(...) return "" end } end
-if not NETWORK then NETWORK = { HttpRequest = function(...) return {} end } end
-if not FILEMAN then FILEMAN = { DoesFileExist = function(...) return false end, GetDirListing = function(...) return {} end, Remove = function(...) return true end } end
-if not RageFileUtil then RageFileUtil = { CreateRageFile = function(...) return { Open = function(...) return false end, Read = function(...) return nil end, Write = function(...) return 0 end, Close = function(...) end, destroy = function(...) end } end } end
-if not THEME then THEME = { GetCurrentThemeDirectory = function(...) return "" end } end
+if not NETWORK then NETWORK = {
+	HttpRequest = function(...)
+		return {}
+	end }
+end
+if not FILEMAN then FILEMAN = {
+	DoesFileExist = function(...)
+		return false
+	end,
+	GetDirListing = function(...)
+		return {}
+	end,
+	Remove = function(...)
+		return true
+	end }
+end
+if not RageFileUtil then RageFileUtil = {
+	CreateRageFile = function(...)
+		return {
+			Open = function(...)
+				return false
+			end,
+			Read = function(...)
+				return nil
+			end,
+			Write = function(...)
+				return 0
+			end,
+			Close = function(...)
+			end,
+			destroy = function(...)
+			end
+		}
+	end
+  }
+end
+if not THEME then THEME = {
+	GetCurrentThemeDirectory = function(...)
+		return ""
+	end
+}
+end
 
 local function LoadIniConfig()
 	local path = THEME:GetCurrentThemeDirectory() .. "Modules/archipelago.ini"

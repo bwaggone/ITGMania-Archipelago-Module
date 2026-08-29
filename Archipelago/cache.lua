@@ -117,19 +117,10 @@ AP.LoadBonusUsage = function()
 		
 		if content then
 			for line in content:gmatch("[^\r\n]+") do
-				-- Format 1: song_name:score_type=count
-				local name, score_type, count_str = line:match("^([^:]+):([^=]+)=(%d+)$")
-				if name and score_type and count_str then
-					if not AP.bonusUsage[name] then AP.bonusUsage[name] = {money=0, ex=0, hex=0} end
-					AP.bonusUsage[name][score_type] = tonumber(count_str)
-				else
-					-- Format 2 (legacy): song_name=count
-					local legacy_name, legacy_count_str = line:match("^([^=]+)=(%d+)$")
-					if legacy_name and legacy_count_str then
-						local count = tonumber(legacy_count_str)
-						AP.bonusUsage[legacy_name] = count
-					end
-				end
+			-- Format: song_name:score_type=count
+			local name, score_type, count_str = line:match("^([^:]+):([^=]+)=(%d+)$")
+				if not AP.bonusUsage[name] then AP.bonusUsage[name] = {money=0, ex=0, hex=0} end
+				AP.bonusUsage[name][score_type] = tonumber(count_str)
 			end
 		end
 	else
@@ -155,9 +146,6 @@ AP.SaveBonusUsage = function()
 				if (usage.hex or 0) > 0 then
 					table.insert(lines, name .. ":hex=" .. tostring(usage.hex))
 				end
-			else
-				-- Save legacy format if unchanged
-				table.insert(lines, name .. "=" .. tostring(usage))
 			end
 		end
 		local content = table.concat(lines, "\n")

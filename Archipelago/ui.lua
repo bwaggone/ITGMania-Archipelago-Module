@@ -1,5 +1,4 @@
--- ui.lua is the place where we create UI elements to support the archipelago
--- game.
+-- ui.lua is the place where we create UI elements to support the archipelago game.
 
 local AP = ...
 

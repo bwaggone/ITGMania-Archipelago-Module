@@ -1,3 +1,10 @@
+-- helpers.lua provides utility functions for the Archipelago module including
+-- * player name retrieval
+-- * item and location name resolution
+-- * JSON parsing for print messages
+-- * YAML formatting for configuration
+-- * song library scanning
+
 local AP = ...
 
 AP.playerNames = {}

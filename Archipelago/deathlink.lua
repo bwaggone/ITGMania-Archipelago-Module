@@ -1,3 +1,5 @@
+-- deathlink.lua handles deathlink functionality.
+
 local AP = ...
 
 AP.SendDeathLink = function()

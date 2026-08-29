@@ -1,3 +1,5 @@
+-- playlist.lua handles the creation and updating of the Archipelago playlist file based on received items.
+
 local AP = ...
 
 AP.UpdatePlaylist = function()

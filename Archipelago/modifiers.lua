@@ -1,5 +1,6 @@
 -- modifiers.lua manages active gameplay modifier limit checks and clamps,
--- such as speed limit, background filter, and mini settings.
+-- such as speed limit, background filter, and mini settings. This is optional
+-- and can be disabled via the "enable_mod_items" slot option.
 
 local AP = ...
 

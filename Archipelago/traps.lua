@@ -1,3 +1,5 @@
+-- traps.lua handles the application of trap items to player options during gameplay.
+
 local AP = ...
 
 AP.cachedHalfSpeedTarget = AP.cachedHalfSpeedTarget or {}

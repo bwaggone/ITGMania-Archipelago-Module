@@ -1,3 +1,5 @@
+-- evaluator.lua handles the evaluation of completed songs and the sending of location checks to the Archipelago server.
+
 local AP = ...
 
 if not SL then SL = {} end

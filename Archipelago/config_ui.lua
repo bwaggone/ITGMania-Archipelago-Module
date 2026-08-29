@@ -198,7 +198,7 @@ AP.MakeConfigOverlayActor = function()
 		-- Render Title and Footer based on View State
 		if viewState == "main" then
 			title:settext("ARCHIPELAGO CONFIGURATION")
-			footer:settext("Use &MENUUP;/&MENUDOWN; to navigate. &MENULEFT;/&MENURIGHT; or Start to edit. ESC/Back to exit.")
+			footer:settext("Use &MENUUP;/&MENUDOWN; to navigate. &MENULEFT;/&MENURIGHT; or &START; to edit. &SELECT; to exit.")
 			
 			local visSettings = getVisibleSettings()
 			for i = 1, 12 do
@@ -249,7 +249,7 @@ AP.MakeConfigOverlayActor = function()
 			
 		elseif viewState == "traps" then
 			title:settext("SELECT TRAP ITEMS")
-			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. Press Start to toggle. ESC/Back to return.")
+			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. &START; to toggle. &SELECT; to return.")
 			
 			for i = 1, 12 do
 				local row = list_af:GetChild("Row" .. i)
@@ -275,7 +275,7 @@ AP.MakeConfigOverlayActor = function()
 			
 		elseif viewState == "songs" then
 			title:settext("SELECT SONG POOL")
-			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. Start to toggle. &MENULEFT;/&MENURIGHT; to collapse/expand. ESC to return.")
+			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. Start to toggle. &MENULEFT;/&MENURIGHT; to collapse/expand. &SELECT; to return.")
 			
 			for i = 1, 12 do
 				local row = list_af:GetChild("Row" .. i)
@@ -315,7 +315,7 @@ AP.MakeConfigOverlayActor = function()
 			
 		elseif viewState == "goal_song" then
 			title:settext("SELECT GOAL SONG")
-			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. Start to select. ESC/Back to return.")
+			footer:settext("Use &MENUUP;/&MENUDOWN; to scroll. &START; to select. &SELECT; to return.")
 			
 			local goalSongs = getGoalSongsList()
 			local num_items = #goalSongs + 2
