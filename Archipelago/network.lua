@@ -232,10 +232,13 @@ AP.HandleMessage = function(self, msg)
 				if packet["slot_data"] then
 					AP.slotOptions.score_type = packet["slot_data"]["score_type"] or 1
 					AP.slotOptions.passing_score = packet["slot_data"]["passing_score"] or 0
-					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"]
+					local fail_all = packet["slot_data"]["fail_allowed"]
+					AP.slotOptions.fail_allowed = (fail_all == true or fail_all == 1)
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or 15
-					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or false
-					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or false
+					local enable_mod = packet["slot_data"]["enable_mod_items"]
+					AP.slotOptions.enable_mod_items = (enable_mod == true or enable_mod == 1)
+					local death_link = packet["slot_data"]["deathlink_enabled"]
+					AP.slotOptions.deathlink_enabled = (death_link == true or death_link == 1)
 					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or {}
 					AP.slotOptions.game_mode = packet["slot_data"]["game_mode"] or 0
 					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or ""
@@ -276,10 +279,19 @@ AP.HandleMessage = function(self, msg)
 				if packet["slot_data"] then
 					AP.slotOptions.score_type = packet["slot_data"]["score_type"] or AP.slotOptions.score_type
 					AP.slotOptions.passing_score = packet["slot_data"]["passing_score"] or AP.slotOptions.passing_score
-					AP.slotOptions.fail_allowed = packet["slot_data"]["fail_allowed"] or AP.slotOptions.fail_allowed
+					if packet["slot_data"]["fail_allowed"] ~= nil then
+						local val = packet["slot_data"]["fail_allowed"]
+						AP.slotOptions.fail_allowed = (val == true or val == 1)
+					end
 					AP.slotOptions.win_count = packet["slot_data"]["win_count"] or AP.slotOptions.win_count
-					AP.slotOptions.enable_mod_items = packet["slot_data"]["enable_mod_items"] or AP.slotOptions.enable_mod_items
-					AP.slotOptions.deathlink_enabled = packet["slot_data"]["deathlink_enabled"] or AP.slotOptions.deathlink_enabled
+					if packet["slot_data"]["enable_mod_items"] ~= nil then
+						local val = packet["slot_data"]["enable_mod_items"]
+						AP.slotOptions.enable_mod_items = (val == true or val == 1)
+					end
+					if packet["slot_data"]["deathlink_enabled"] ~= nil then
+						local val = packet["slot_data"]["deathlink_enabled"]
+						AP.slotOptions.deathlink_enabled = (val == true or val == 1)
+					end
 					AP.slotOptions.trap_items = packet["slot_data"]["trap_items"] or AP.slotOptions.trap_items
 					AP.slotOptions.game_mode = packet["slot_data"]["game_mode"] or AP.slotOptions.game_mode
 					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or AP.slotOptions.goal_song
