@@ -22,7 +22,7 @@ AP.seedName = "Unknown"
 AP.AP_AllReceivedItems = {}
 AP.bonusUsage = {}
 AP.initialSyncComplete = false
-AP.hasShownConnectedPopup = false
+AP.lastConnectedState = nil
 AP.slotOptions = {
 	score_type = 1,
 	passing_score = 0,
@@ -71,10 +71,6 @@ AP.cachedHalfSpeedTarget = {}
 -- UI state
 AP.notificationQueue = {}
 AP.isNotificationActive = false
-AP.hasShownConnectedPopup = false
-AP.hasShownDisconnectedPopup = false
-AP.hasStartedConnectionTimer = false
-
 -- Define local logging wrappers that prepend MODULE_TAG to all screen and log outputs
 local original_SM = SM
 AP.AP_SM = function(msg)

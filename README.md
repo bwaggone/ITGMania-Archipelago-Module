@@ -4,27 +4,24 @@ A Lua module for **ITGMania** that functions as a client integration for the **A
 It automatically synchronizes song unlocks, sends checks upon song clears/score thresholds, manages progression
 modifiers, and provides interactive UI overlays directly inside the **Simply Love** theme.
 
-For details about the world setup, and how the game plays, see the [Docs on the AP World](https://github.com/bwaggone/Archipelago-Kiseki/tree/itgmania/worlds/itgmania/docs).
+For details about the world setup and options, see the [Archipelago ITGMania World Setup Docs](https://github.com/bwaggone/Archipelago-Kiseki/blob/itgmania/worlds/itgmania/docs/setup_en.md).
 
 ---
 
 ## 🌟 Key Features
-*   **Two supported game modes:** Either hunt for boss keys and clear the boss song, or go for a simple clear count.
-*   **YAML Generator Builtin:**
-    * Use the tool from the sort menu, and you'll be able to generate your yaml to generate the AP World.
-    * Automatically detects your loaded songs, and can generate a custom song pool based on it
-    * Writes yaml to `.../Themes/[THEME_NAME]/Modules/Archipelago/YAMLS/...`
-*   **Persistent WebSocket Connection**: A background client connection that runs continuously in ITGMania. It
-      handles handshakes, syncs item unlocks, and automatically submits completed location checks.
+*   **Two Supported Game Modes**: Either hunt for boss keys and clear a goal song, or go for a simple clear count.
+*   **YAML Config Tool Built-in**:
+    *   Open the overlay from Simply Love's sort menu to configure slot options and select custom song pools.
+    *   Generates player YAML configurations containing selected `custom_song_pool` paths.
+    *   Writes YAML files to `.../Themes/[THEME_NAME]/Modules/Archipelago/YAMLS/[Player_Name].yaml`.
+*   **Persistent WebSocket Connection**: A background client connection that runs continuously in ITGMania. It handles handshakes, syncs item unlocks, and automatically submits completed location checks.
 *   **Dynamic Playlist & Live Song Wheel Updates**:
     *   Unlocked song charts are written to a local playlist file: `.../Themes/[THEME_NAME]/Other/Playlists/Archipelago - <SeedName>.txt`.
-    *   The module forces the StepMania C++ engine to reload the playlist from disk when new songs arrive. If you are on the song selection screen
-        (`ScreenSelectMusic`) and sorting by **Preferred**, the music wheel refreshes automatically so new unlocks appear instantly.
+    *   The module forces the StepMania C++ engine to reload the playlist from disk when new songs arrive. If you are on the song selection screen (`ScreenSelectMusic`) and sorting by **Preferred**, the music wheel refreshes automatically so new unlocks appear instantly.
 *   **In-Game Status Overlay (`F10`)**:
     *   Pressing **`F10`** on the music wheel opens a full-screen, scrollable dashboard.
     *   Displays: Room and Seed metadata, Win Goal progress, current modifier limits (if enabled), and a list of unlocked song charts.
-    *   Selecting any song displays a detailed pane showing the current **Clear Condition** (active score type target, minimum percentage, fail
-        allowance) and the individual status (`[x]` or `[ ]`) of all its checks.
+    *   Selecting any song displays a detailed pane showing the current **Clear Condition** (active score type target, minimum percentage, fail allowance) and the individual status (`[x]` or `[ ]`) of all its checks.
 *   **Interactive Score Evaluation Overlay**:
     *   Earn "Score Booster" items from the multiworld, which grant a `+0.25%` score increase.
     *   If you have unused boosters, a custom interactive panel auto-pops on the song evaluation screen.
@@ -38,9 +35,9 @@ For details about the world setup, and how the game plays, see the [Docs on the 
         *   Connecting or disconnecting from the server.
         *   Receiving items/charts from another player (e.g., `RECEIVED: Song Name (from PlayerName)`).
         *   Sending checks to another player (e.g., `CHECK SENT: Song Name (to PlayerName)`).
-*   **Trap and Deathlink Support**
-    *  Traps such as forced mini, forced half scroll, and reverse scroll speed
-    *  If deathlink is enabled, failing a song will cause all other players to die. Or if they die in their game, it auto-fails you
+*   **Trap and Death Link Support**:
+    *   Traps such as forced mini, forced half scroll, and reverse scroll speed.
+    *   If Death Link is enabled, failing a song will cause all other players to die. Conversely, if another player dies in their game, it auto-fails your current song.
 
 ---
 
@@ -57,12 +54,15 @@ For details about the world setup, and how the game plays, see the [Docs on the 
    Password =
    ```
    *Note: While optimized for standard **Simply Love**, UI elements might require styling adjustments on theme forks (like Zmod, ArrowCloud, or DigitalDance).*
-   *Extra Note: This is incompatible with DeadSync until it can support themes and Modules. Assuming DeadSync does not implement this module's functionality directly.*
+   *Extra Note: This is incompatible with DeadSync until it can support themes and Modules.*
 
-### 2. Multiworld Generation & Seed Setup (TODO)
-
-A separate module (or portion of this one) will be dedicated to parsing your entire songlist and generating a `songpool.csv` file to give to the server.
-This is not yet done.
+### 2. Multiworld Generation & Seed Setup
+1. In ITGMania, enter the song selection wheel (`ScreenSelectMusic`).
+2. Open the Sort Menu (press **`Left` and `Right`** together) and select **`AP Config Tool`**.
+3. Configure your desired player settings and select **`Configure Song Pool...`** to choose which song packs or individual songs you want in your pool.
+4. Select **`--- GENERATE YAML ---`** to write your config YAML to the theme's `Modules/Archipelago/YAMLS/` directory.
+5. Place this YAML in the Archipelago `Players/` folder. The generator automatically uses the `custom_song_pool` list defined inside your YAML. If no custom songs are chosen, it defaults to the **Club Fantastic Seasons 1 & 2** pools that come by default with ITGMania.
+6. Generate your multiworld seed.
 
 ---
 
@@ -79,7 +79,7 @@ This is not yet done.
 *Triggers automatically on `ScreenEvaluation` when unused Score Boosters are available.*
 *   **`MenuUp` / `MenuDown`** (or Arrow Up/Down): Select which score system row to boost (Money, EX, High EX).
 *   **`MenuLeft` / `MenuRight`** (or Arrow Left/Right): Decrease/increase the count of boosters to allocate.
-*   **`Start`**: Confirm allocations and submit.
+*   **`Start`**: Confirm allocations and submit checks.
 *   **`Back` / `Escape` / `Select`**: Exit without applying new boosters and send baseline checks.
 
 ---
@@ -87,11 +87,10 @@ This is not yet done.
 ## TODOs
 
 * Support more complex items besides a score booster (combo shield? worst judgement upgrader?)
-* Separate leg of the module for generating a song pool to pass to the server for world generation
-* Allow the user to specify their AP credentials in game
-* Decide if items should just be granted to the player as unlockable items, or if it should be shop based
-  * e.g. players will send coins, and those coins unlock items or charts SRPG sytle
+* Allow the user to specify their AP credentials in-game
+* Decide if items should just be granted to the player as unlockable items, or if it should be shop-based (e.g. players will send coins, and those coins unlock items or charts SRPG-style)
 * Make overlays look a little closer to the ones that appear in SRPG / ITL
 * Add graphics for AP
 * Improve item balance, so that we can drop speed + mini + bg modifiers sooner than songs
-* Test deathlink, should work in theory
+* Test Death Link logic
+* Add attacks as traps
