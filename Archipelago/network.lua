@@ -54,28 +54,22 @@ AP.HandleMessage = function(self, msg)
 	if msg.type == "WebSocketMessageType_Open" then
 		AP.Trace("WebSocket transport connected. Waiting for RoomInfo...")
 	elseif msg.type == "WebSocketMessageType_Close" then
-		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
 		AP.Trace("Archipelago connection closed: " .. tostring(msg.reason))
-		if wasConnected then
+		if AP.lastConnectedState == true then
 			AP.QueueNotification({ type = "Disconnected" })
-		elseif not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
-			AP.QueueNotification({ type = "Disconnected" })
-			AP.hasShownDisconnectedPopup = true
+			AP.lastConnectedState = false
 		end
 	elseif msg.type == "WebSocketMessageType_Error" then
-		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
 		AP.Trace("Archipelago connection error: " .. tostring(msg.reason))
-		if wasConnected then
+		if AP.lastConnectedState == true then
 			AP.QueueNotification({ type = "Disconnected" })
-		elseif not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
-			AP.QueueNotification({ type = "Disconnected" })
-			AP.hasShownDisconnectedPopup = true
+			AP.lastConnectedState = false
 		end
 	elseif msg.type == "WebSocketMessageType_Message" then
 		local success, packets = pcall(JsonDecode, msg.data)
@@ -188,7 +182,6 @@ AP.HandleMessage = function(self, msg)
 				AP.initialSyncComplete = false
 				AP.connectedSlotName = packet.slot
 				AP.slotID = packet.slot
-				AP.hasShownDisconnectedPopup = false
 				AP.LoadBonusUsage()
 				AP.Trace("Successfully connected to Archipelago! Slot: " .. tostring(packet.slot))
 				
@@ -385,8 +378,9 @@ AP.HandleMessage = function(self, msg)
 					AP.initialSyncComplete = true
 					AP.UpdatePlaylist()
 					
-					if AP.connectedSlotName then
+					if AP.connectedSlotName and AP.lastConnectedState ~= true then
 						AP.QueueNotification({ type = "Connected", name = AP.connectedSlotName })
+						AP.lastConnectedState = true
 						AP.connectedSlotName = nil
 					end
 				end

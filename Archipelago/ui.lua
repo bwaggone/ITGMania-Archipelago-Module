@@ -3,9 +3,6 @@
 local AP = ...
 
 AP.QueueNotification = function(params)
-	if params.type == "Connected" then
-		AP.hasShownConnectedPopup = true
-	end
 	table.insert(AP.notificationQueue, params)
 	MESSAGEMAN:Broadcast("APTriggerShowNext")
 end
@@ -17,21 +14,6 @@ AP.MakePopupActor = function(screenName)
 		InitCommand = function(self)
 			self:xy(-300, _screen.h - 100)
 			isScreenActive = false
-			
-			-- Start a timer on the first popup actor that initializes to check connection status after 5s
-			if not AP.hasStartedConnectionTimer then
-				AP.hasStartedConnectionTimer = true
-				self:sleep(5):queuecommand("CheckInitialConnection")
-			end
-		end,
-		CheckInitialConnectionCommand = function(self)
-			local apHandler = AP.GetAPHandlerInstance()
-			local connected = apHandler and apHandler.connected
-			if not connected and not AP.hasShownConnectedPopup and not AP.hasShownDisconnectedPopup then
-				AP.Trace("Initial connection check failed (timeout). Showing offline status.")
-				AP.QueueNotification({ type = "Disconnected" })
-				AP.hasShownDisconnectedPopup = true
-			end
 		end,
 		ScreenChangedMessageCommand = function(self)
 			local screen = SCREENMAN:GetTopScreen()
@@ -50,9 +32,10 @@ AP.MakePopupActor = function(screenName)
 			isScreenActive = true
 			
 			-- Handle startup connection popup if initial sync completed before UI loaded
-			if AP.initialSyncComplete and not AP.hasShownConnectedPopup and AP.apHandlerInstance and AP.apHandlerInstance.connected then
+			if AP.initialSyncComplete and AP.lastConnectedState ~= true and AP.apHandlerInstance and AP.apHandlerInstance.connected then
 				local slotName = AP.SLOT or "Unknown"
 				AP.QueueNotification({ type = "Connected", name = slotName })
+				AP.lastConnectedState = true
 			end
 			
 			if #AP.notificationQueue > 0 and not AP.isNotificationActive then
@@ -243,8 +226,13 @@ AP.MakeStatusOverlayActor = function()
 		bar_fg:zoomto(500 * progress_pct, 12)
 		
 		-- Update modifier stats line
-		local max_bpm, max_filter, mini, bonus_count = AP.GetModifierStats()
-		local mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Mini: %s    |    Score Boosters: %d", max_bpm, max_filter, mini, AP.GetAvailableBonusItems())
+		local mod_text
+		if AP.IsEnforcingMods() then
+			local max_bpm, max_filter, mini, bonus_count = AP.GetModifierStats()
+			mod_text = string.format("Max Speed: %s    |    BG Filter: %s    |    Mini: %s    |    Score Boosters: %d", max_bpm, max_filter, mini, AP.GetAvailableBonusItems())
+		else
+			mod_text = string.format("Score Boosters: %d", AP.GetAvailableBonusItems())
+		end
 		container:GetChild("ConnectedGroup"):GetChild("ModifierText"):settext(mod_text)
 		
 		-- Update scrollable songs list rows
