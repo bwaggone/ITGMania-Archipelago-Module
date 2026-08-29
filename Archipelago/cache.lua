@@ -98,7 +98,7 @@ AP.LoadCacheFromDisk = function()
 				end
 			end
 		end
-		AP.AP_SM("Loaded " .. tostring(loadedCount) .. " players from local seed cache.")
+		AP.Trace("Loaded " .. tostring(loadedCount) .. " players from local seed cache.")
 	end
 end
 
@@ -168,4 +168,34 @@ AP.SaveBonusUsage = function()
 		file:destroy()
 		AP.Trace("Archipelago error: Could not save bonus usage to " .. path)
 	end
+end
+
+AP.SaveLastSeed = function(seedName)
+	if not seedName or seedName == "Unknown" then return end
+	local path = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/last_seed.txt"
+	local file = RageFileUtil.CreateRageFile()
+	if file:Open(path, 2) then -- Mode 2 = Write
+		file:Write(seedName)
+		file:Close()
+		file:destroy()
+	else
+		file:destroy()
+	end
+end
+
+AP.LoadLastSeed = function()
+	local path = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/last_seed.txt"
+	local file = RageFileUtil.CreateRageFile()
+	local seedName = nil
+	if file:Open(path, 1) then -- Mode 1 = Read
+		local content = file:Read()
+		file:Close()
+		file:destroy()
+		if content then
+			seedName = content:gsub("[%s\r\n]", "")
+		end
+	else
+		file:destroy()
+	end
+	return seedName
 end

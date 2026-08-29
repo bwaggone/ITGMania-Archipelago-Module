@@ -15,7 +15,7 @@ AP.CreateAPHandler = function()
 			self.connected = false
 			self.errorMsg = nil
 
-			AP.AP_SM("Connecting to Archipelago server at: " .. AP.HOST)
+			AP.Trace("Connecting to Archipelago server at: " .. AP.HOST)
 
 			-- Connection time.
 			self.socket = NETWORK:WebSocket{
@@ -52,14 +52,14 @@ end
 
 AP.HandleMessage = function(self, msg)
 	if msg.type == "WebSocketMessageType_Open" then
-		AP.AP_SM("WebSocket transport connected. Waiting for RoomInfo...")
+		AP.Trace("WebSocket transport connected. Waiting for RoomInfo...")
 	elseif msg.type == "WebSocketMessageType_Close" then
 		local wasConnected = self.connected
 		self.connected = false
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
 		if wasConnected then
-			AP.AP_SM("Archipelago connection closed: " .. tostring(msg.reason))
+			AP.Trace("Archipelago connection closed: " .. tostring(msg.reason))
 			AP.QueueNotification({ type = "Disconnected" })
 		end
 	elseif msg.type == "WebSocketMessageType_Error" then
@@ -68,13 +68,13 @@ AP.HandleMessage = function(self, msg)
 		AP.initialSyncComplete = false
 		AP.connectedSlotName = nil
 		if wasConnected then
-			AP.AP_SM("Archipelago connection error: " .. tostring(msg.reason))
+			AP.Trace("Archipelago connection error: " .. tostring(msg.reason))
 			AP.QueueNotification({ type = "Disconnected" })
 		end
 	elseif msg.type == "WebSocketMessageType_Message" then
 		local success, packets = pcall(JsonDecode, msg.data)
 		if not success then
-			AP.AP_SM("Failed to decode JSON from Archipelago server: " .. tostring(msg.data))
+			AP.Trace("Failed to decode JSON from Archipelago server: " .. tostring(msg.data))
 			return
 		end
 
@@ -82,8 +82,9 @@ AP.HandleMessage = function(self, msg)
 			local packet_cmd = packet["cmd"]
 			if packet_cmd == "RoomInfo" then
 				AP.seedName = packet["seed_name"] or "Unknown"
+				AP.SaveLastSeed(AP.seedName)
 				AP.LoadCacheFromDisk()
-				AP.AP_SM("Received RoomInfo (Seed: " .. AP.seedName .. "). Requesting DataPackage...")
+				AP.Trace("Received RoomInfo (Seed: " .. AP.seedName .. "). Requesting DataPackage...")
 				local get_dp_packet = {
 					["cmd"] = "GetDataPackage",
 					games = packet["games"]
@@ -157,12 +158,12 @@ AP.HandleMessage = function(self, msg)
 						end
 					end
 				end
-				AP.AP_SM("Loaded " .. tostring(count) .. " item names, " .. tostring(loc_count) .. " locations, and " .. tostring(cached_folders) .. " folder mappings from DataPackage.")
+				AP.Trace("Loaded " .. tostring(count) .. " item names, " .. tostring(loc_count) .. " locations, and " .. tostring(cached_folders) .. " folder mappings from DataPackage.")
 
 				-- Save updated cache to disk
 				AP.SaveCacheToDisk()
 
-				AP.AP_SM("Sending Connect packet...")
+				AP.Trace("Sending Connect packet...")
 				local connect_packet = {
 					["cmd"] = "Connect",
 					game = AP.GAME_NAME,
@@ -182,7 +183,7 @@ AP.HandleMessage = function(self, msg)
 				AP.connectedSlotName = packet.slot
 				AP.slotID = packet.slot
 				AP.LoadBonusUsage()
-				AP.AP_SM("Successfully connected to Archipelago! Slot: " .. tostring(packet.slot))
+				AP.Trace("Successfully connected to Archipelago! Slot: " .. tostring(packet.slot))
 				
 				-- Store players and slot info
 				AP.playerNames = AP.playerNames or {}
@@ -233,7 +234,7 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or ""
 					AP.slotOptions.bosskey_name = packet["slot_data"]["bosskey_name"] or "Boss Key"
 					AP.slotOptions.bosskeys_required = packet["slot_data"]["bosskeys_required"] or 0
-					AP.AP_SM("Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
+					AP.Trace("Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
@@ -245,7 +246,7 @@ AP.HandleMessage = function(self, msg)
 					   ", Required: " .. tostring(AP.slotOptions.bosskeys_required))
 
 					if AP.slotOptions.deathlink_enabled then
-						AP.AP_SM("DeathLink is enabled. Sending ConnectUpdate...")
+						AP.Trace("DeathLink is enabled. Sending ConnectUpdate...")
 						local connect_update = {
 							["cmd"] = "ConnectUpdate",
 							tags = { "DeathLink" }
@@ -254,7 +255,7 @@ AP.HandleMessage = function(self, msg)
 					end
 				end
 			elseif packet_cmd == "RoomUpdate" then
-				AP.AP_SM("Received RoomUpdate from server.")
+				AP.Trace("Received RoomUpdate from server.")
 				
 				if packet["checked_locations"] then
 					if not AP.checkedLocations then AP.checkedLocations = {} end
@@ -277,7 +278,7 @@ AP.HandleMessage = function(self, msg)
 					AP.slotOptions.goal_song = packet["slot_data"]["goal_song"] or AP.slotOptions.goal_song
 					AP.slotOptions.bosskey_name = packet["slot_data"]["bosskey_name"] or AP.slotOptions.bosskey_name
 					AP.slotOptions.bosskeys_required = packet["slot_data"]["bosskeys_required"] or AP.slotOptions.bosskeys_required
-					AP.AP_SM("Updated Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
+					AP.Trace("Updated Slot Options - Score Type: " .. tostring(AP.slotOptions.score_type) .. 
 					   ", Passing Score: " .. tostring(AP.slotOptions.passing_score) .. 
 					   ", Fail Allowed: " .. tostring(AP.slotOptions.fail_allowed) ..
 					   ", Win Count: " .. tostring(AP.slotOptions.win_count) ..
@@ -292,7 +293,7 @@ AP.HandleMessage = function(self, msg)
 				self.connected = false
 				local errs = packet.errors or {}
 				local errStr = table.concat(errs, ", ")
-				AP.AP_SM("Archipelago connection refused: " .. errStr)
+				AP.Trace("Archipelago connection refused: " .. errStr)
 			elseif packet_cmd == "Bounced" then
 				if packet.tags then
 					local isDeathLink = false
@@ -316,7 +317,7 @@ AP.HandleMessage = function(self, msg)
 				end
 			elseif packet_cmd == "PrintJSON" then
 				local message = AP.ParsePrintJSON(packet.data)
-				AP.AP_SM(message)
+				AP.Trace(message)
 				
 				-- If it's an ItemSend and we are the finder but not the receiver (foreign item sent)
 				if packet.type == "ItemSend" and packet.item then
@@ -336,7 +337,7 @@ AP.HandleMessage = function(self, msg)
 			elseif packet_cmd == "ReceivedItems" then
 				local item_count = packet.items and #packet.items or 0
 				local base_idx = packet["index"] or 0
-				AP.AP_SM("Received " .. tostring(item_count) .. " items from server (index " .. tostring(base_idx) .. ")")
+				AP.Trace("Received " .. tostring(item_count) .. " items from server (index " .. tostring(base_idx) .. ")")
 				if packet.items then
 					local isNewItem = self.connected and AP.initialSyncComplete
 					if base_idx == 0 then
@@ -347,9 +348,9 @@ AP.HandleMessage = function(self, msg)
 						local item_id = item.item
 						local name = AP.itemNames[item_id] or "Unknown Item"
 						if name:find("/") then
-							AP.AP_SM("Received Song: " .. name .. " (ID=" .. tostring(item_id) .. ", Location=" .. tostring(item.location) .. ", Player=" .. tostring(item.player) .. ")")
+							AP.Trace("Received Song: " .. name .. " (ID=" .. tostring(item_id) .. ", Location=" .. tostring(item.location) .. ", Player=" .. tostring(item.player) .. ")")
 						else
-							AP.AP_SM("Received Mod/Filler (Non-Song): " .. name .. " (ID=" .. tostring(item_id) .. ", Location=" .. tostring(item.location) .. ", Player=" .. tostring(item.player) .. ")")
+							AP.Trace("Received Mod/Filler (Non-Song): " .. name .. " (ID=" .. tostring(item_id) .. ", Location=" .. tostring(item.location) .. ", Player=" .. tostring(item.player) .. ")")
 						end
 						if isNewItem then
 							local sender = AP.GetPlayerName(item.player)
@@ -379,7 +380,7 @@ end
 
 AP.SendVictoryStatus = function()
 	if AP.apHandlerInstance and AP.apHandlerInstance.connected and AP.apHandlerInstance.socket then
-		AP.AP_SM("Sending CLIENT_GOAL status update to server...")
+		AP.Trace("Sending CLIENT_GOAL status update to server...")
 		local status_packet = {
 			["cmd"] = "StatusUpdate",
 			status = 30 -- ClientStatus.CLIENT_GOAL

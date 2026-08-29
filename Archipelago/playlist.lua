@@ -64,7 +64,7 @@ AP.UpdatePlaylist = function()
 			file:Write(playlist_content)
 			file:Close()
 			file:destroy()
-			AP.AP_SM("Updated Archipelago playlist: " .. count .. " songs")
+			AP.Trace("Updated Archipelago playlist: " .. count .. " songs")
 			
 			-- Force C++ engine to reload the playlist from disk
 			SONGMAN:SetPreferredSongs(path, true)

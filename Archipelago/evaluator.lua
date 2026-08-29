@@ -2,7 +2,7 @@ local AP = ...
 
 if not SL then SL = {} end
 
-SL.HardExWeights = {
+local HardExWeights = {
 	W010=3.5,
 	W110=3,
 	W2=1,
@@ -15,7 +15,7 @@ SL.HardExWeights = {
 	HitMine=-1
 }
 
-CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
+local CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
 	-- No EX scores in Casual mode, just return some dummy number early.
 	if SL.Global.GameMode == "Casual" then return 0 end
 	local StepsOrTrail = (GAMESTATE:IsCourseMode() and GAMESTATE:GetCurrentTrail(player)) or GAMESTATE:GetCurrentSteps(player)
@@ -24,8 +24,8 @@ CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
 	local totalHolds = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Holds" )
 	local totalRolls = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Rolls" )
 
-	local W0Weight = use_actual_w0_weight and 3.5 or SL.HardExWeights["W010"]
-	local total_possible = totalSteps * W0Weight + (totalHolds + totalRolls) * SL.HardExWeights["Held"]
+	local W0Weight = use_actual_w0_weight and 3.5 or HardExWeights["W010"]
+	local total_possible = totalSteps * W0Weight + (totalHolds + totalRolls) * HardExWeights["Held"]
 
 	-- If we can't calculate HardEx score (ex_counts is passed, or sequential_offsets is missing), return 0%.
 	local stageStats = SL[ToEnumShortString(player)].Stages.Stats[SL.Global.Stages.PlayedThisGame + 1]
@@ -43,7 +43,7 @@ CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
 	-- generally have a negative weight, it's a better experience to make sure the EX score reflects that.
 	if po:NoMines() then
 		local totalMines = StepsOrTrail:GetRadarValues(player):GetValue( "RadarCategory_Mines" )
-		total_points = total_points + totalMines * SL.HardExWeights["HitMine"]
+		total_points = total_points + totalMines * HardExWeights["HitMine"]
 	end
 
 	-- Calculate timing window limits dynamically for parity with theme preferences
@@ -103,7 +103,7 @@ CalculateHardExScore = function(player, ex_counts, use_actual_w0_weight)
 	for _, key in ipairs(keys) do
 		local value = counts[key]
 		if value ~= nil then
-			total_points = total_points + value * SL.HardExWeights[key]
+			total_points = total_points + value * HardExWeights[key]
 		end
 	end
 
@@ -132,11 +132,11 @@ AP.EvaluateCompletedSong = function()
 	end
 
 	if AP.IsSongLocked(song) then
-		AP.AP_SM("Song is locked in Archipelago! Suppressing location check evaluation.")
+		AP.Trace("Song is locked in Archipelago! Suppressing location check evaluation.")
 		return
 	end
 	
-	AP.AP_SM("Evaluating completed AP song: " .. chart_name)
+	AP.Trace("Evaluating completed AP song: " .. chart_name)
 	
 	AP.LastEvaluation = {
 		chart_name = chart_name,
@@ -184,7 +184,7 @@ AP.EvaluateCompletedSong = function()
 			
 			local adjustedPercent = activePercent
 			
-			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " Performance - " .. score_system_name .. " Score: " .. string.format("%.2f", activePercent) .. "% (Money: " .. string.format("%.2f", moneyPercent) .. "%" .. (CalculateExScore and (", EX: " .. string.format("%.2f", exPercent) .. "%") or "") .. "), Failed: " .. tostring(is_failed))
+			AP.Trace("Player " .. ToEnumShortString(pn) .. " Performance - " .. score_system_name .. " Score: " .. string.format("%.2f", activePercent) .. "% (Money: " .. string.format("%.2f", moneyPercent) .. "%" .. (CalculateExScore and (", EX: " .. string.format("%.2f", exPercent) .. "%") or "") .. "), Failed: " .. tostring(is_failed))
 			
 			-- Cache player stats for the score adjuster overlay
 			AP.LastEvaluation.players[pn] = {
@@ -260,7 +260,7 @@ AP.FinalizeEvaluationAndSendChecks = function()
 		end
 		
 		if passed_clear then
-			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " CLEARED the song logic!")
+			AP.Trace("Player " .. ToEnumShortString(pn) .. " CLEARED the song logic!")
 			queue_check("0")
 			queue_check("1")
 			
@@ -271,22 +271,22 @@ AP.FinalizeEvaluationAndSendChecks = function()
 			if adjustedPercent >= 98 then queue_check("98") end
 			if adjustedPercent >= 99 then queue_check("99") end
 		else
-			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " did not clear the song logic (Passing Score target: " .. tostring(AP.slotOptions.passing_score) .. "%)")
+			AP.Trace("Player " .. ToEnumShortString(pn) .. " did not clear the song logic (Passing Score target: " .. tostring(AP.slotOptions.passing_score) .. "%)")
 		end
 		
 		-- Quad and Quint are independent of the selected score_type
 		if adjMoney >= 100 then
-			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " got a QUAD money score!")
+			AP.Trace("Player " .. ToEnumShortString(pn) .. " got a QUAD money score!")
 			queue_check("quad")
 		end
 		if adjEx >= 100 and CalculateExScore then
-			AP.AP_SM("Player " .. ToEnumShortString(pn) .. " got a QUINT EX score!")
+			AP.Trace("Player " .. ToEnumShortString(pn) .. " got a QUINT EX score!")
 			queue_check("quint")
 		end
 	end
 	
 	if #checks_to_send > 0 and AP.apHandlerInstance and AP.apHandlerInstance.connected and AP.apHandlerInstance.socket then
-		AP.AP_SM("Sending " .. tostring(#checks_to_send) .. " location checks to server...")
+		AP.Trace("Sending " .. tostring(#checks_to_send) .. " location checks to server...")
 		local checks_packet = {
 			["cmd"] = "LocationChecks",
 			locations = checks_to_send
@@ -300,7 +300,7 @@ AP.FinalizeEvaluationAndSendChecks = function()
 			AP.checkedLocations[loc_id] = true
 		end
 	else
-		AP.AP_SM("No locations to check or client is not connected.")
+		AP.Trace("No locations to check or client is not connected.")
 	end
 
 	-- Check for victory

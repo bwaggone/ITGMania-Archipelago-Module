@@ -174,7 +174,7 @@ AP.MakeStatusOverlayActor = function()
 		
 		if not overlay_visible then return end
 		
-		local apHandler = GetAPHandlerInstance()
+		local apHandler = AP.GetAPHandlerInstance()
 		if not apHandler or not apHandler.connected then
 			container:GetChild("ConnectedGroup"):visible(false)
 			container:GetChild("OfflineMsg"):visible(true)
@@ -355,14 +355,14 @@ AP.MakeStatusOverlayActor = function()
 			-- Sync and regenerate playlist
 			AP.UpdatePlaylist()
 			
-			local apHandler = GetAPHandlerInstance()
+			local apHandler = AP.GetAPHandlerInstance()
 			if apHandler and apHandler.connected and apHandler.socket then
 				local sync_packet = { ["cmd"] = "Sync" }
 				local payload = JsonEncode({ sync_packet })
 				apHandler.socket:Send(payload, false)
-				AP.AP_SM("Requested Archipelago sync...")
+				AP.Trace("Requested Archipelago sync...")
 			else
-				AP.AP_SM("Regenerated Archipelago playlist locally.")
+				AP.Trace("Regenerated Archipelago playlist locally.")
 			end
 			
 			SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))

@@ -8,7 +8,7 @@ AP.SendDeathLink = function()
 		return
 	end
 
-	AP.AP_SM("Sending DeathLink to server...")
+	AP.Trace("Sending DeathLink to server...")
 	local bounce_packet = {
 		["cmd"] = "Bounce",
 		tags = { "DeathLink" },

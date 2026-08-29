@@ -75,11 +75,7 @@ AP.isNotificationActive = false
 -- Define local logging wrappers that prepend MODULE_TAG to all screen and log outputs
 local original_SM = SM
 AP.AP_SM = function(msg)
-	if original_SM then
-		original_SM(AP.MODULE_TAG .. " " .. tostring(msg))
-	else
-		SCREENMAN:SystemMessage(AP.MODULE_TAG .. " " .. tostring(msg))
-	end
+	AP.Trace(msg)
 end
 
 local original_Trace = Trace
@@ -91,15 +87,15 @@ AP.Trace = function(msg)
 	end
 end
 
-AP.AP_SM("Hola from lua!")
+AP.Trace("Loaded Archipelago client module.")
 
 -- Guarded stub declarations (only for tooling; real objects provided by engine at runtime)
 if not PROFILEMAN then PROFILEMAN = { GetProfileDir = function(...) return "" end } end
 if not NETWORK then NETWORK = { HttpRequest = function(...) return {} end } end
 if not FILEMAN then FILEMAN = { DoesFileExist = function(...) return false end, GetDirListing = function(...) return {} end, Remove = function(...) return true end } end
 
--- Global getter for apHandlerInstance
-GetAPHandlerInstance = function()
+-- Getter for apHandlerInstance
+AP.GetAPHandlerInstance = function()
 	return AP.apHandlerInstance
 end
 
@@ -124,6 +120,14 @@ end
 -- Load Archipelago components in dependency order
 loadSubFile("helpers.lua")
 loadSubFile("cache.lua")
+
+-- Bootstrap cache offline if last connected seed exists
+local lastSeed = AP.LoadLastSeed()
+if lastSeed then
+	AP.seedName = lastSeed
+	AP.LoadCacheFromDisk()
+end
+
 loadSubFile("modifiers.lua")
 loadSubFile("boosters.lua")
 loadSubFile("playlist.lua")
