@@ -412,7 +412,7 @@ AP.MakeConfigOverlayActor = function()
 		local sanitized_name = AP.configState.player_name:gsub("[%s%c\\/:%*%?\"<>|]", "_")
 		local filename = sanitized_name .. ".yaml"
 		
-		local yaml_dir = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/"
+		local yaml_dir = THEME:GetCurrentThemeDirectory() .. "Modules/Archipelago/YAMLS/"
 		local yaml_path = yaml_dir .. filename
 		
 		local file = RageFileUtil.CreateRageFile()
@@ -420,7 +420,7 @@ AP.MakeConfigOverlayActor = function()
 			file:Write(content)
 			file:Close()
 			
-			SCREENMAN:SystemMessage("YAML generated under Themes/Simply Love/Modules/Archipelago/!")
+			SCREENMAN:SystemMessage("YAML generated under Themes/Simply Love/Modules/Archipelago/YAMLS/!")
 			SOUND:PlayOnce(THEME:GetPathS("", "_unlock.ogg"))
 			
 			overlay_visible = false
